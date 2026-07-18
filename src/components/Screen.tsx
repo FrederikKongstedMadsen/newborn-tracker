@@ -18,7 +18,7 @@ export function Screen({ children, scroll = true, topInset = false }: Props) {
     paddingTop: topInset ? insets.top + spacing.md : spacing.md,
     paddingLeft: spacing.md + insets.left,
     paddingRight: spacing.md + insets.right,
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.md + insets.bottom,
   };
 
   if (!scroll) {
