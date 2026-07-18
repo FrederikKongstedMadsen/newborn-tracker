@@ -26,3 +26,13 @@ export function relativeDays(dateIso: string, todayIsoStr: string = todayIso()):
   if (days === 1) return 'yesterday';
   return `${days}d ago`;
 }
+
+/** Short "X ago" label for a timestamp relative to nowMs. */
+export function relativeTime(iso: string, nowMs: number): string {
+  const diffMinutes = Math.floor((nowMs - Date.parse(iso)) / 60_000);
+  if (diffMinutes < 1) return 'just now';
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return `${Math.floor(diffHours / 24)}d ago`;
+}
