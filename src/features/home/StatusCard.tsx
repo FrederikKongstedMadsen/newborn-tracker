@@ -23,7 +23,13 @@ export function StatusCard({ tracker, value, meta, onPress, valueColor }: Props)
     <Card onPress={onPress}>
       <IconChip icon={icon} accent={accent} tint={tint} />
       <Text style={styles.title}>{capitalize(tracker)}</Text>
-      <Text style={[styles.value, valueColor ? { color: valueColor } : null]}>{value}</Text>
+      <Text
+        style={[styles.value, valueColor ? { color: valueColor } : null]}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {value}
+      </Text>
       <Text style={styles.meta}>{meta}</Text>
     </Card>
   );
