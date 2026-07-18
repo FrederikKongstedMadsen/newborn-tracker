@@ -22,11 +22,13 @@
 ### Task 1: Theme constants + Screen + Card primitives
 
 **Files:**
+
 - Create: `src/lib/theme.ts`
 - Create: `src/components/Screen.tsx`
 - Create: `src/components/Card.tsx`
 
 **Interfaces:**
+
 - Produces: `theme` object (`colors`, `spacing`, `fontSize`); `<Screen scroll?: boolean, edges?: ('top'|'bottom')[]>` wrapper; `<Card onPress?, children>` pressable card.
 
 - [ ] **Step 1: Theme**
@@ -162,6 +164,7 @@ git add src && git commit -m "feat: add theme constants, Screen and Card primiti
 ### Task 2: Tab navigator + root layout rewiring
 
 **Files:**
+
 - Create: `src/app/(tabs)/_layout.tsx`
 - Create: `src/app/(tabs)/index.tsx` (placeholder content, Task 3 fills)
 - Create: `src/app/(tabs)/track.tsx` (placeholder content, Task 4 fills)
@@ -170,6 +173,7 @@ git add src && git commit -m "feat: add theme constants, Screen and Card primiti
 - Delete: `src/app/index.tsx`, `src/app/baby.tsx`
 
 **Interfaces:**
+
 - Consumes: nothing new.
 - Produces: routes `/` (Home tab), `/track`, `/profile`; root layout registers `(tabs)` protected screen with `headerShown: false`.
 
@@ -265,10 +269,12 @@ git add -A && git commit -m "feat: add bottom tab navigation shell"
 ### Task 3: Home tab — overview with status cards
 
 **Files:**
+
 - Create: `src/features/home/GrowthStatusCard.tsx`
 - Modify: `src/app/(tabs)/index.tsx`
 
 **Interfaces:**
+
 - Consumes: `useBaby` (`@/features/baby/hooks`), `useGrowthMeasurements` (`@/features/growth/hooks`), `ageInDays` (`@/features/growth/who/curveMath`), `Screen`, `Card`, theme.
 - Produces: Home screen per spec.
 
@@ -384,10 +390,12 @@ git add -A && git commit -m "feat: add home overview with growth status card"
 ### Task 4: Track + Profile tabs
 
 **Files:**
+
 - Modify: `src/app/(tabs)/track.tsx`
 - Modify: `src/app/(tabs)/profile.tsx`
 
 **Interfaces:**
+
 - Consumes: `Screen`, `Card`, theme, `useBaby`/`useSaveBaby`, `FormField`, `supabase` (sign out).
 - Produces: Track directory and Profile screens per spec.
 
@@ -520,10 +528,12 @@ git add -A && git commit -m "feat: add track directory and profile tab"
 ### Task 5: Migrate growth screens to Screen/theme
 
 **Files:**
+
 - Modify: `src/app/growth/index.tsx`, `src/app/growth/new.tsx`, `src/app/growth/[id].tsx`
 - Modify: `src/components/FormField.tsx`, `src/features/growth/GrowthChart.tsx` (theme constants only)
 
 **Interfaces:**
+
 - Consumes: `Screen`, theme.
 - Produces: growth screens with correct insets and theme colors; no behavior change.
 
