@@ -123,7 +123,7 @@ One row per measuring session; any subset of the three values.
 
 ## WHO Growth Curve Data
 
-Vendored as static JSON under `src/features/growth/data/`:
+Vendored as static JSON under `src/features/growth/who/data/`:
 
 - Indicators: weight-for-age, length/height-for-age, head-circumference-for-age
 - Sexes: boys and girls

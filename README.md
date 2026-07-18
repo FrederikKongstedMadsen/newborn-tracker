@@ -24,6 +24,7 @@ Checks:
 npm run typecheck
 npm run lint
 npm run format
+npm test
 ```
 
 ## Supabase setup (one-time, manual)
