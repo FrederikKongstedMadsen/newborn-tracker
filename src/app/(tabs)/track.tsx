@@ -10,7 +10,8 @@ const TRACKERS = [
   { title: 'Sleep', tracker: 'sleep' as const, href: '/sleep' as const },
   { title: 'Feeding', tracker: 'feeding' as const, href: '/feeding' as const },
   { title: 'Growth', tracker: 'growth' as const, href: '/growth' as const },
-  // future: diapers, sick, notes
+  { title: 'Notes', tracker: 'notes' as const, href: '/notes' as const },
+  // future: diapers, sick
 ];
 
 export default function Track() {

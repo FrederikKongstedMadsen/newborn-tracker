@@ -8,6 +8,7 @@ import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { FeedingStatusCard } from '@/features/home/FeedingStatusCard';
 import { GrowthStatusCard } from '@/features/home/GrowthStatusCard';
+import { NotesStatusCard } from '@/features/home/NotesStatusCard';
 import { SleepStatusCard } from '@/features/home/SleepStatusCard';
 import { ageInDays } from '@/features/growth/who/curveMath';
 import { todayIso } from '@/lib/dates';
@@ -58,6 +59,9 @@ export default function Home() {
             </View>
             <View style={styles.cell}>
               <GrowthStatusCard babyId={baby.id} />
+            </View>
+            <View style={styles.cell}>
+              <NotesStatusCard babyId={baby.id} />
             </View>
           </View>
         </>
