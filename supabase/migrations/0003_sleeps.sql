@@ -25,3 +25,9 @@ alter table sleep_pauses enable row level security;
 
 create policy "authenticated full access" on sleep_pauses
   for all to authenticated using (true) with check (true);
+
+-- Guard against concurrent double-starts: at most one running sleep per baby,
+-- and at most one open pause per sleep.
+create unique index one_open_sleep_per_baby on sleeps (baby_id) where ended_at is null;
+
+create unique index one_open_pause_per_sleep on sleep_pauses (sleep_id) where ended_at is null;
