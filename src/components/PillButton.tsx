@@ -16,7 +16,13 @@ interface Props {
 const backgrounds: Record<Variant, string> = {
   primary: colors.primary,
   danger: colors.danger,
-  neutral: colors.card,
+  neutral: colors.background,
+};
+
+const borders: Record<Variant, string> = {
+  primary: 'transparent',
+  danger: 'transparent',
+  neutral: colors.border,
 };
 
 const pressedBackgrounds: Record<Variant, string> = {
@@ -38,7 +44,11 @@ export function PillButton({ title, onPress, icon, variant = 'primary', disabled
       disabled={disabled}
       style={({ pressed }) => [
         styles.pill,
-        { backgroundColor: pressed ? pressedBackgrounds[variant] : backgrounds[variant] },
+        {
+          backgroundColor: pressed ? pressedBackgrounds[variant] : backgrounds[variant],
+          borderWidth: 1,
+          borderColor: borders[variant],
+        },
         disabled && styles.disabled,
       ]}
     >
