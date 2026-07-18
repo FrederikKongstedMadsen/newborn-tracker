@@ -2,10 +2,11 @@ import { router } from 'expo-router';
 import { StyleSheet, Text } from 'react-native';
 
 import { Card } from '@/components/Card';
-import { feedSummary, formatDuration, totalElapsedSeconds } from '@/features/feeding/feedMath';
+import { feedSummary, totalElapsedSeconds } from '@/features/feeding/feedMath';
 import { useActiveFeed, useFeeds } from '@/features/feeding/hooks';
 import { useNowTick } from '@/features/feeding/useNowTick';
 import { relativeTime } from '@/lib/dates';
+import { formatDuration } from '@/lib/duration';
 import { colors, fontSize, spacing } from '@/lib/theme';
 
 export function FeedingStatusCard({ babyId }: { babyId: string }) {

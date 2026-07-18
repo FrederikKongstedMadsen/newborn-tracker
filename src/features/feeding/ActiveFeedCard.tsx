@@ -1,9 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/Card';
+import { formatDuration } from '@/lib/duration';
 import { colors, fontSize, spacing } from '@/lib/theme';
 
-import { formatDuration, sideElapsedSeconds, totalElapsedSeconds } from './feedMath';
+import { sideElapsedSeconds, totalElapsedSeconds } from './feedMath';
 import { useStopFeed, useToggleSide } from './hooks';
 import type { Feed, FeedSide } from './types';
 import { useNowTick } from './useNowTick';

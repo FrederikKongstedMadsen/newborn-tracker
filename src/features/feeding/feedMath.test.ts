@@ -1,7 +1,6 @@
 import {
   dailyTotals,
   feedSummary,
-  formatDuration,
   localDateIso,
   sideElapsedSeconds,
   totalElapsedSeconds,
@@ -45,18 +44,6 @@ describe('sideElapsedSeconds', () => {
 describe('totalElapsedSeconds', () => {
   it('sums both sides including running share', () => {
     expect(totalElapsedSeconds(base, NOW)).toBe(510);
-  });
-});
-
-describe('formatDuration', () => {
-  it('formats sub-minute as seconds', () => {
-    expect(formatDuration(45)).toBe('45s');
-  });
-  it('formats minutes', () => {
-    expect(formatDuration(14 * 60)).toBe('14m');
-  });
-  it('formats hours with padded minutes', () => {
-    expect(formatDuration(3720)).toBe('1h 02m');
   });
 });
 

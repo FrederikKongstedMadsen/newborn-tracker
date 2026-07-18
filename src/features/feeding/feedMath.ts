@@ -1,3 +1,5 @@
+import { formatDuration } from '@/lib/duration';
+
 import type { Feed, FeedSide } from './types';
 
 function localDateParts(date: Date): { y: number; m: string; d: string } {
@@ -25,14 +27,6 @@ export function sideElapsedSeconds(feed: Feed, side: FeedSide, nowMs: number): n
 
 export function totalElapsedSeconds(feed: Feed, nowMs: number): number {
   return sideElapsedSeconds(feed, 'left', nowMs) + sideElapsedSeconds(feed, 'right', nowMs);
-}
-
-export function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ${String(minutes % 60).padStart(2, '0')}m`;
 }
 
 export function feedSummary(feed: Feed): string {
