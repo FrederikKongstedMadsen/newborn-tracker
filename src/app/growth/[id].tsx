@@ -1,8 +1,9 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Button, StyleSheet, Text, View } from 'react-native';
+import { Alert, Button, StyleSheet, Text } from 'react-native';
 
 import { FormField } from '@/components/FormField';
+import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import {
   useDeleteMeasurement,
@@ -10,6 +11,7 @@ import {
   useUpdateMeasurement,
 } from '@/features/growth/hooks';
 import type { GrowthMeasurement } from '@/features/growth/types';
+import { colors } from '@/lib/theme';
 
 import { parseDecimal } from './new';
 
@@ -79,7 +81,7 @@ export default function EditMeasurement() {
   }
 
   return (
-    <View style={styles.container}>
+    <Screen>
       <FormField label="Date (YYYY-MM-DD)" value={date} onChangeText={setDate} />
       <FormField
         label="Weight (kg)"
@@ -112,15 +114,14 @@ export default function EditMeasurement() {
       <Button title="Save" disabled={!valid || updateMeasurement.isPending} onPress={save} />
       <Button
         title="Delete"
-        color="red"
+        color={colors.danger}
         disabled={!measurement || deleteMeasurement.isPending}
         onPress={confirmDelete}
       />
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, gap: 16 },
-  error: { color: 'red' },
+  error: { color: colors.danger },
 });

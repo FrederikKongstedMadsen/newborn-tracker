@@ -1,10 +1,13 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { Button, StyleSheet, Text } from 'react-native';
 
 import { FormField } from '@/components/FormField';
+import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { useAddMeasurement } from '@/features/growth/hooks';
+import { todayIso } from '@/lib/dates';
+import { colors } from '@/lib/theme';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -18,7 +21,7 @@ export function parseDecimal(text: string): number | null {
 export default function NewMeasurement() {
   const { data: baby } = useBaby();
   const addMeasurement = useAddMeasurement();
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(todayIso());
   const [weightKg, setWeightKg] = useState('');
   const [heightCm, setHeightCm] = useState('');
   const [headCm, setHeadCm] = useState('');
@@ -45,7 +48,7 @@ export default function NewMeasurement() {
   }
 
   return (
-    <View style={styles.container}>
+    <Screen>
       <FormField label="Date (YYYY-MM-DD)" value={date} onChangeText={setDate} />
       <FormField
         label="Weight (kg)"
@@ -73,11 +76,10 @@ export default function NewMeasurement() {
         <Text style={styles.error}>{addMeasurement.error.message}</Text>
       ) : null}
       <Button title="Save" disabled={!valid || addMeasurement.isPending} onPress={save} />
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, gap: 16 },
-  error: { color: 'red' },
+  error: { color: colors.danger },
 });

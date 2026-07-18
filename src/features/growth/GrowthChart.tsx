@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Polyline, Rect, Text as SvgText } from 'react-native-svg';
 
+import { colors } from '@/lib/theme';
+
 import { makeScale } from './chartScale';
 import type { GrowthMeasurement } from './types';
 import { ageInDays } from './who/curveMath';
@@ -25,7 +27,7 @@ const SURFACE = '#fcfcfb';
 const INK_PRIMARY = '#0b0b0b';
 const INK_MUTED = '#898781';
 const GRIDLINE = '#e1e0d9';
-const MEASUREMENT_COLOR = '#2a78d6'; // categorical slot 1 (blue)
+const MEASUREMENT_COLOR = colors.primary; // categorical slot 1 (blue)
 
 const MARGIN = { top: 12, right: 36, bottom: 28, left: 40 };
 
