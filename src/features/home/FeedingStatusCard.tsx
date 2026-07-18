@@ -13,7 +13,7 @@ export function FeedingStatusCard({ babyId }: { babyId: string }) {
   const { data: activeFeed } = useActiveFeed(babyId);
   const { data: feeds } = useFeeds(babyId);
   const now = useNowTick(!!activeFeed);
-  const latest = feeds?.[0];
+  const latest = feeds?.find((f) => f.ended_at !== null);
 
   return (
     <Card onPress={() => router.push('/feeding')}>

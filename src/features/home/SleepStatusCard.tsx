@@ -13,7 +13,7 @@ export function SleepStatusCard({ babyId }: { babyId: string }) {
   const { data: activeSleep } = useActiveSleep(babyId);
   const { data: sleeps } = useSleeps(babyId);
   const now = useNowTick(!!activeSleep);
-  const latest = sleeps?.[0];
+  const latest = sleeps?.find((s) => s.ended_at !== null);
 
   const state = activeSleep ? sleepState(activeSleep, activeSleep.sleep_pauses) : null;
   const openPause = activeSleep?.sleep_pauses.find((pause) => pause.ended_at === null);
