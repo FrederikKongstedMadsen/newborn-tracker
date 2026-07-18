@@ -1,56 +1,54 @@
-# Welcome to your Expo app 👋
+# Newborn Tracker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Personal newborn tracker for two users. Both phones log and view the same data.
 
-## Get started
+## Stack
 
-1. Install dependencies
+- [Expo](https://expo.dev) (managed workflow) + TypeScript + Expo Router
+- [Supabase](https://supabase.com) — Postgres, auth, realtime
+- [TanStack Query](https://tanstack.com/query) as the data layer
 
-   ```bash
-   npm install
-   ```
+Design docs live in `docs/superpowers/specs/`, implementation plans in `docs/superpowers/plans/`.
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Local development
 
 ```bash
-npm run reset-project
+npm install
+cp .env.example .env   # then fill in your Supabase values
+npx expo start         # scan QR with the Expo Go app, or press "a" for Android emulator
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Checks:
 
-### Other setup steps
+```bash
+npm run typecheck
+npm run lint
+npm run format
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Supabase setup (one-time, manual)
 
-## Learn more
+1. Create a free project at [supabase.com](https://supabase.com).
+2. Copy the project URL and anon/publishable key into `.env`
+   (`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`).
+3. Disable public signups: Authentication → Sign In / Providers → Email → turn off
+   "Allow new users to sign up".
+4. Create the two user accounts: Authentication → Users → Add user (email + password,
+   check "Auto Confirm User").
 
-To learn more about developing your project with Expo, look at the following resources:
+Database schema changes go in `supabase/migrations/` as SQL files, applied via the
+Supabase SQL editor or the Supabase CLI.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Building an APK (for installing on phones)
 
-## Join the community
+Requires a free [Expo account](https://expo.dev/signup).
 
-Join our community of developers creating universal apps.
+```bash
+npx eas build --platform android --profile preview
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Download the APK from the build page and install it on each phone (allow
+"install from unknown sources").
+
+**Note:** `EXPO_PUBLIC_*` env vars are baked into the JS bundle at build time —
+`.env` must contain the real Supabase values before building.
