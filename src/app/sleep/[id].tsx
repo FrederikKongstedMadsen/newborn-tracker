@@ -8,6 +8,7 @@ import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { useDeletePause, useDeleteSleep, useSleeps, useUpdateSleep } from '@/features/sleep/hooks';
 import type { SleepPause, SleepWithPauses } from '@/features/sleep/types';
+import { timeHHmm } from '@/lib/dates';
 import { formatDuration } from '@/lib/duration';
 import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
 
@@ -37,7 +38,7 @@ function deriveSegments(sleep: SleepWithPauses): Segment[] {
     cursor = pause.ended_at;
   }
   segments.push({ kind: 'sleep', startedAt: cursor, endedAt: sleep.ended_at });
-  return segments;
+  return segments.filter((s) => Date.parse(s.endedAt) > Date.parse(s.startedAt));
 }
 
 function toDatetimeLocal(iso: string): string {
@@ -48,10 +49,6 @@ function toDatetimeLocal(iso: string): string {
   const hh = String(d.getHours()).padStart(2, '0');
   const mm = String(d.getMinutes()).padStart(2, '0');
   return `${y}-${m}-${day}T${hh}:${mm}`;
-}
-
-function timeOnly(iso: string): string {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 function segmentSeconds(segment: Segment): number {
@@ -68,7 +65,7 @@ function SegmentRow({ segment }: { segment: Segment }) {
       <View style={[styles.dot, { backgroundColor: accent }]} />
       <Text style={styles.segmentLabel}>{segment.kind === 'sleep' ? 'Sleep' : 'Pause'}</Text>
       <Text style={styles.segmentRange}>
-        {timeOnly(segment.startedAt)}–{timeOnly(segment.endedAt)}
+        {timeHHmm(segment.startedAt)}–{timeHHmm(segment.endedAt)}
       </Text>
       <Text style={styles.segmentDuration}>{formatDuration(segmentSeconds(segment))}</Text>
     </View>
@@ -212,9 +209,9 @@ export default function EditSleep() {
           {sleep.sleep_pauses.map((pause) => (
             <View key={pause.id} style={styles.pauseRow}>
               <Text style={styles.pauseText}>
-                {timeOnly(pause.started_at)}–
+                {timeHHmm(pause.started_at)}–
                 {pause.ended_at
-                  ? `${timeOnly(pause.ended_at)} · ${formatDuration(
+                  ? `${timeHHmm(pause.ended_at)} · ${formatDuration(
                       Math.max(
                         0,
                         Math.floor(

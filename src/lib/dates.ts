@@ -41,6 +41,15 @@ export function relativeDays(dateIso: string, todayIsoStr: string = todayIso()):
   return `${days}d ago`;
 }
 
+/** Returns the local time of an ISO timestamp as 24-hour 'HH:mm'. Deliberately
+ * avoids toLocaleTimeString(), whose 'hour: 2-digit' output is locale
+ * dependent (e.g. renders 12-hour AM/PM on many locales) — this app's design
+ * requires a consistent 24-hour format. */
+export function timeHHmm(iso: string): string {
+  const d = new Date(iso);
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 /** Short "X ago" label for a timestamp relative to nowMs. */
 export function relativeTime(iso: string, nowMs: number): string {
   const diffMinutes = Math.floor((nowMs - Date.parse(iso)) / 60_000);

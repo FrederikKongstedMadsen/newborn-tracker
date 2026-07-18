@@ -1,4 +1,4 @@
-import { relativeDays, relativeTime, todayIso } from './dates';
+import { relativeDays, relativeTime, timeHHmm, todayIso } from './dates';
 
 describe('todayIso', () => {
   it('returns a YYYY-MM-DD formatted string', () => {
@@ -41,5 +41,22 @@ describe('relativeTime', () => {
   });
   it('falls back to days beyond 24h', () => {
     expect(relativeTime('2026-07-15T13:00:00.000Z', now)).toBe('3d ago');
+  });
+});
+
+describe('timeHHmm', () => {
+  it('formats a morning time as 24-hour HH:mm', () => {
+    const iso = new Date(2026, 6, 18, 9, 5).toISOString();
+    expect(timeHHmm(iso)).toBe('09:05');
+  });
+
+  it('formats an afternoon/evening time in 24-hour form (no AM/PM)', () => {
+    const iso = new Date(2026, 6, 18, 21, 30).toISOString();
+    expect(timeHHmm(iso)).toBe('21:30');
+  });
+
+  it('pads midnight hour and minute', () => {
+    const iso = new Date(2026, 6, 18, 0, 0).toISOString();
+    expect(timeHHmm(iso)).toBe('00:00');
   });
 });

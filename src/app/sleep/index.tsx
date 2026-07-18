@@ -15,13 +15,9 @@ import { useActiveSleep, useSleeps, useStartSleep } from '@/features/sleep/hooks
 import { SleepChart } from '@/features/sleep/SleepChart';
 import { effectiveSleepSeconds, pauseSeconds } from '@/features/sleep/sleepMath';
 import type { SleepWithPauses } from '@/features/sleep/types';
-import { relativeTime } from '@/lib/dates';
+import { relativeTime, timeHHmm } from '@/lib/dates';
 import { formatDuration } from '@/lib/duration';
 import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
-
-function timeOnly(iso: string): string {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
 
 function SleepRow({ item, now }: { item: SleepWithPauses; now: number }) {
   const { data: profileMap } = useProfileMap();
@@ -42,7 +38,7 @@ function SleepRow({ item, now }: { item: SleepWithPauses; now: number }) {
           ) : null}
         </Text>
         <Text style={styles.rowRange}>
-          {timeOnly(item.started_at)}–{timeOnly(item.ended_at!)}
+          {timeHHmm(item.started_at)}–{timeHHmm(item.ended_at!)}
         </Text>
       </View>
       <View style={styles.rowMeta}>
