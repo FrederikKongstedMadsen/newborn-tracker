@@ -6,8 +6,7 @@ import { PillButton } from '@/components/PillButton';
 import { Screen } from '@/components/Screen';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { useBaby, useSaveBaby } from '@/features/baby/hooks';
-import { colors, fontFamily, fontSize, spacing } from '@/lib/theme';
-import { supabase } from '@/lib/supabase';
+import { colors, fontSize } from '@/lib/theme';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const SEX_OPTIONS = ['Boy', 'Girl'] as const;
@@ -20,7 +19,7 @@ function optionToSex(option: string): 'male' | 'female' {
   return option === 'Boy' ? 'male' : 'female';
 }
 
-export default function Profile() {
+export default function BabyProfile() {
   const { data: baby } = useBaby();
   const saveBaby = useSaveBaby();
   const [name, setName] = useState('');
@@ -41,8 +40,7 @@ export default function Profile() {
   const valid = name.trim().length > 0 && DATE_RE.test(birthDate);
 
   return (
-    <Screen topInset>
-      <Text style={styles.heading}>Baby profile</Text>
+    <Screen topInset={false}>
       <FormField label="Name" value={name} onChangeText={setName} />
       <View style={styles.sexRow}>
         <SegmentedControl
@@ -67,17 +65,12 @@ export default function Profile() {
           saveBaby.mutate({ id: baby?.id, name: name.trim(), sex, birth_date: birthDate })
         }
       />
-      <View style={styles.signOut}>
-        <PillButton title="Sign out" variant="danger" onPress={() => supabase.auth.signOut()} />
-      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  heading: { fontSize: fontSize.xl, fontFamily: fontFamily.bold, color: colors.text },
   sexRow: { flexDirection: 'row' },
   error: { color: colors.danger, fontSize: fontSize.sm },
   saved: { color: colors.primary, fontSize: fontSize.sm },
-  signOut: { marginTop: spacing.xl },
 });

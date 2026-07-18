@@ -47,7 +47,7 @@ export default function Home() {
                 styles.profileButton,
                 pressed && styles.profileButtonPressed,
               ]}
-              onPress={() => router.push('/profile')}
+              onPress={() => router.push('/settings')}
             >
               <Ionicons name="people-outline" size={20} color={colors.text} />
             </Pressable>
@@ -74,7 +74,7 @@ export default function Home() {
           </View>
         </>
       ) : (
-        <Card onPress={() => router.push('/profile')}>
+        <Card onPress={() => router.push('/settings')}>
           <Text style={styles.name}>Welcome</Text>
           <Text style={styles.age}>Create the baby profile to get started</Text>
         </Card>

@@ -57,6 +57,8 @@ function AuthGate() {
         <Stack.Screen name="sick/medicine/[id]" options={{ title: 'Edit dose' }} />
         <Stack.Screen name="notes/index" options={{ headerShown: false }} />
         <Stack.Screen name="notes/[id]" options={{ title: 'Edit note' }} />
+        <Stack.Screen name="settings/baby" options={{ title: 'Baby profile' }} />
+        <Stack.Screen name="settings/profile" options={{ title: 'My profile' }} />
       </Stack.Protected>
       <Stack.Protected guard={session === null}>
         <Stack.Screen name="login" options={{ title: 'Log in' }} />
