@@ -23,8 +23,7 @@ function row(item: Feed) {
     dateStyle: 'short',
     timeStyle: 'short',
   });
-  const running = item.ended_at === null;
-  return `${when} · ${feedSummary(item)}${running ? ' · running' : ''}`;
+  return `${when} · ${feedSummary(item)}`;
 }
 
 export default function FeedingScreen() {
@@ -38,7 +37,7 @@ export default function FeedingScreen() {
     <Screen scroll={false}>
       <FlatList
         style={styles.list}
-        data={feeds ?? []}
+        data={(feeds ?? []).filter((f) => f.ended_at !== null)}
         keyExtractor={(f) => f.id}
         ListHeaderComponent={
           <View style={styles.header}>
