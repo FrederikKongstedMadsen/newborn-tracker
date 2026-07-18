@@ -3,18 +3,18 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Avatar } from '@/components/Avatar';
 import { Card } from '@/components/Card';
 import { FormField } from '@/components/FormField';
 import { IconChip } from '@/components/IconChip';
 import { PillButton } from '@/components/PillButton';
+import { RowAttribution } from '@/components/RowAttribution';
 import { Screen } from '@/components/Screen';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { useBaby } from '@/features/baby/hooks';
 import { useNowTick } from '@/features/feeding/useNowTick';
 import { useProfileMap } from '@/features/profiles/hooks';
 import { useDoses, useLogDose, useLogTemperature, useTemperatures } from '@/features/sick/hooks';
-import { doseSummary, isFever } from '@/features/sick/sickMath';
+import { doseSummary, tempInfo } from '@/features/sick/sickMath';
 import type { MedicineDose, Temperature } from '@/features/sick/types';
 import { relativeTime, timeHHmm } from '@/lib/dates';
 import { colors, fontFamily, fontSize, radius, spacing, trackerColors } from '@/lib/theme';
@@ -48,7 +48,7 @@ function rowDate(iso: string): string {
 function TemperatureRow({ item, now }: { item: Temperature; now: number }) {
   const { data: profileMap } = useProfileMap();
   const profile = profileMap?.get(item.created_by);
-  const fever = isFever(item.celsius);
+  const info = tempInfo(item.celsius);
 
   return (
     <Pressable style={styles.row} onPress={() => router.push(`/sick/temperature/${item.id}`)}>
@@ -58,20 +58,19 @@ function TemperatureRow({ item, now }: { item: Temperature; now: number }) {
         tint={trackerColors.temperature.tint}
       />
       <View style={styles.rowBody}>
-        <Text style={[styles.rowValue, fever && styles.rowValueFever]}>
-          {item.celsius.toFixed(1)} °C
+        <Text style={styles.rowValue}>
+          <Text style={{ color: info.color }}>{item.celsius.toFixed(1)} °C</Text>
+          <Text style={[styles.rowStatus, { color: info.color }]}> {info.label}</Text>
         </Text>
         <Text style={styles.rowDatetime}>
           {timeHHmm(item.measured_at)} · {rowDate(item.measured_at)}
         </Text>
       </View>
-      <View style={styles.rowMeta}>
-        <Text style={styles.rowWhen}>{relativeTime(item.measured_at, now)}</Text>
-        <View style={styles.rowProfile}>
-          <Avatar profile={profile} size={20} />
-          <Text style={styles.rowName}>{profile?.display_name}</Text>
-        </View>
-      </View>
+      <RowAttribution
+        note={item.note}
+        timeLabel={relativeTime(item.measured_at, now)}
+        profile={profile}
+      />
     </Pressable>
   );
 }
@@ -93,13 +92,11 @@ function DoseRow({ item, now }: { item: MedicineDose; now: number }) {
           {timeHHmm(item.given_at)} · {rowDate(item.given_at)}
         </Text>
       </View>
-      <View style={styles.rowMeta}>
-        <Text style={styles.rowWhen}>{relativeTime(item.given_at, now)}</Text>
-        <View style={styles.rowProfile}>
-          <Avatar profile={profile} size={20} />
-          <Text style={styles.rowName}>{profile?.display_name}</Text>
-        </View>
-      </View>
+      <RowAttribution
+        note={item.note}
+        timeLabel={relativeTime(item.given_at, now)}
+        profile={profile}
+      />
     </Pressable>
   );
 }
@@ -351,12 +348,8 @@ const styles = StyleSheet.create({
   },
   rowBody: { flex: 1, gap: 2 },
   rowValue: { fontFamily: fontFamily.bold, fontSize: fontSize.md, color: colors.text },
-  rowValueFever: { color: colors.danger },
+  rowStatus: { fontFamily: fontFamily.semibold, fontSize: fontSize.sm },
   rowDatetime: { color: colors.mutedDark, fontFamily: fontFamily.regular, fontSize: fontSize.sm },
-  rowMeta: { alignItems: 'flex-end', gap: spacing.xs },
-  rowWhen: { color: colors.muted, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
-  rowProfile: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  rowName: { color: colors.text, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
   empty: { textAlign: 'center', color: colors.muted, marginTop: 24 },
   error: { color: colors.danger, fontSize: fontSize.sm },
 });

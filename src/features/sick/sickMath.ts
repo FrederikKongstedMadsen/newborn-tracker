@@ -1,8 +1,10 @@
 import type { MedicineDose } from './types';
 
-/** Fever threshold hardcoded per spec out-of-scope note (no age-based thresholds). */
-export function isFever(celsius: number): boolean {
-  return celsius >= 38.0;
+/** Temperature tiers hardcoded per spec out-of-scope note (no age-based thresholds). */
+export function tempInfo(celsius: number): { label: 'Normal' | 'Raised' | 'Fever'; color: string } {
+  if (celsius < 37.5) return { label: 'Normal', color: '#3a8a6f' };
+  if (celsius < 38.0) return { label: 'Raised', color: '#c9922e' };
+  return { label: 'Fever', color: '#cf6257' };
 }
 
 /** "2.5 ml paracetamol" — `amount` as a plain number already drops a trailing

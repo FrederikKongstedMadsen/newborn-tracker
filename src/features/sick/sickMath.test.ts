@@ -1,4 +1,4 @@
-import { doseSummary, isFever } from './sickMath';
+import { doseSummary, tempInfo } from './sickMath';
 import type { MedicineDose } from './types';
 
 function dose(overrides: Partial<MedicineDose> = {}): MedicineDose {
@@ -16,13 +16,21 @@ function dose(overrides: Partial<MedicineDose> = {}): MedicineDose {
   };
 }
 
-describe('isFever', () => {
-  it('is false just below the threshold', () => {
-    expect(isFever(37.9)).toBe(false);
+describe('tempInfo', () => {
+  it('is Normal just below the raised threshold', () => {
+    expect(tempInfo(37.4)).toEqual({ label: 'Normal', color: '#3a8a6f' });
   });
 
-  it('is true at the threshold', () => {
-    expect(isFever(38.0)).toBe(true);
+  it('is Raised at the raised threshold', () => {
+    expect(tempInfo(37.5)).toEqual({ label: 'Raised', color: '#c9922e' });
+  });
+
+  it('is Raised just below the fever threshold', () => {
+    expect(tempInfo(37.9)).toEqual({ label: 'Raised', color: '#c9922e' });
+  });
+
+  it('is Fever at the fever threshold', () => {
+    expect(tempInfo(38.0)).toEqual({ label: 'Fever', color: '#cf6257' });
   });
 });
 

@@ -2,9 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Avatar } from '@/components/Avatar';
 import { Card } from '@/components/Card';
 import { IconChip } from '@/components/IconChip';
+import { RowAttribution } from '@/components/RowAttribution';
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { diaperMeta } from '@/features/diaper/diaperMeta';
@@ -36,13 +36,11 @@ function DiaperRow({ item, now }: { item: Diaper; now: number }) {
           {timeHHmm(item.happened_at)} · {rowDate(item.happened_at)}
         </Text>
       </View>
-      <View style={styles.rowMeta}>
-        <Text style={styles.rowWhen}>{relativeTime(item.happened_at, now)}</Text>
-        <View style={styles.rowProfile}>
-          <Avatar profile={profile} size={20} />
-          <Text style={styles.rowName}>{profile?.display_name}</Text>
-        </View>
-      </View>
+      <RowAttribution
+        note={item.note}
+        timeLabel={relativeTime(item.happened_at, now)}
+        profile={profile}
+      />
     </Pressable>
   );
 }
@@ -176,9 +174,5 @@ const styles = StyleSheet.create({
   rowBody: { flex: 1, gap: 2 },
   rowType: { fontFamily: fontFamily.bold, fontSize: fontSize.md, color: colors.text },
   rowDatetime: { color: colors.mutedDark, fontFamily: fontFamily.regular, fontSize: fontSize.sm },
-  rowMeta: { alignItems: 'flex-end', gap: spacing.xs },
-  rowWhen: { color: colors.muted, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
-  rowProfile: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  rowName: { color: colors.text, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
   empty: { textAlign: 'center', color: colors.muted, marginTop: 24 },
 });

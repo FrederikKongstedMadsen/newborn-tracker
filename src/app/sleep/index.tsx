@@ -2,11 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { FlatList, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import { Avatar } from '@/components/Avatar';
 import { Card } from '@/components/Card';
 import { ClockDigits } from '@/components/ClockDigits';
 import { IconChip } from '@/components/IconChip';
 import { PillButton } from '@/components/PillButton';
+import { RowAttribution } from '@/components/RowAttribution';
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { useNowTick } from '@/features/feeding/useNowTick';
@@ -42,13 +42,11 @@ function SleepRow({ item, now }: { item: SleepWithPauses; now: number }) {
           {timeHHmm(item.started_at)}–{timeHHmm(item.ended_at!)}
         </Text>
       </View>
-      <View style={styles.rowMeta}>
-        <Text style={styles.rowWhen}>{relativeTime(item.ended_at ?? item.started_at, now)}</Text>
-        <View style={styles.rowProfile}>
-          <Avatar profile={profile} size={20} />
-          <Text style={styles.rowName}>{profile?.display_name}</Text>
-        </View>
-      </View>
+      <RowAttribution
+        note={item.note}
+        timeLabel={relativeTime(item.ended_at ?? item.started_at, now)}
+        profile={profile}
+      />
     </Pressable>
   );
 }
@@ -167,9 +165,5 @@ const styles = StyleSheet.create({
   rowDuration: { fontFamily: fontFamily.bold, fontSize: fontSize.md, color: colors.text },
   rowMuted: { color: colors.mutedDark, fontFamily: fontFamily.regular, fontSize: fontSize.md },
   rowRange: { color: colors.mutedDark, fontFamily: fontFamily.regular, fontSize: fontSize.sm },
-  rowMeta: { alignItems: 'flex-end', gap: spacing.xs },
-  rowWhen: { color: colors.muted, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
-  rowProfile: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  rowName: { color: colors.text, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
   empty: { textAlign: 'center', color: colors.muted, marginTop: 24 },
 });

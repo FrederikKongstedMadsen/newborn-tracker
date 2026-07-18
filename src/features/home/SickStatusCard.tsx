@@ -2,9 +2,8 @@ import { router } from 'expo-router';
 
 import { useNowTick } from '@/features/feeding/useNowTick';
 import { useDoses, useTemperatures } from '@/features/sick/hooks';
-import { isFever } from '@/features/sick/sickMath';
+import { tempInfo } from '@/features/sick/sickMath';
 import { relativeTime } from '@/lib/dates';
-import { colors } from '@/lib/theme';
 
 import { StatusCard } from './StatusCard';
 
@@ -21,7 +20,7 @@ export function SickStatusCard({ babyId }: { babyId: string }) {
 
   if (latestTemp) {
     value = `${latestTemp.celsius.toFixed(1)} °C`;
-    valueColor = isFever(latestTemp.celsius) ? colors.danger : undefined;
+    valueColor = tempInfo(latestTemp.celsius).color;
     meta = latestDose
       ? `${latestDose.medicine} · ${relativeTime(latestDose.given_at, now)}`
       : relativeTime(latestTemp.measured_at, now);
