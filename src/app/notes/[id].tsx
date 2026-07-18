@@ -34,7 +34,7 @@ export default function EditNote() {
 
   // Remember prefilled values so save() can tell whether the user actually
   // edited a field, vs. just re-saving.
-  const [prefilledBody, setPrefilledBody] = useState('');
+  const [, setPrefilledBody] = useState('');
   const [prefilledDatetime, setPrefilledDatetime] = useState('');
 
   // Sync form fields from the loaded note whenever it changes, without a
@@ -56,12 +56,11 @@ export default function EditNote() {
 
   function save() {
     if (!note || !valid) return;
-    const bodyChanged = body.trim() !== prefilledBody;
     const datetimeChanged = datetime !== prefilledDatetime;
     updateNote.mutate(
       {
         id: note.id,
-        ...(bodyChanged ? { body: body.trim() } : {}),
+        body: body.trim(),
         ...(datetimeChanged ? { noted_at: new Date(datetime).toISOString() } : {}),
       },
       { onSuccess: () => router.back() },
@@ -82,7 +81,14 @@ export default function EditNote() {
 
   return (
     <Screen>
-      <FormField label="Note" value={body} onChangeText={setBody} multiline numberOfLines={5} />
+      <FormField
+        label="Note"
+        value={body}
+        onChangeText={setBody}
+        multiline
+        numberOfLines={5}
+        style={styles.body}
+      />
       <FormField label="Noted at (YYYY-MM-DDTHH:mm)" value={datetime} onChangeText={setDatetime} />
       {updateNote.isError ? <Text style={styles.error}>{updateNote.error.message}</Text> : null}
       {deleteNote.isError ? <Text style={styles.error}>{deleteNote.error.message}</Text> : null}
@@ -99,4 +105,5 @@ export default function EditNote() {
 
 const styles = StyleSheet.create({
   error: { color: colors.danger, fontSize: fontSize.sm },
+  body: { minHeight: 120, textAlignVertical: 'top' },
 });

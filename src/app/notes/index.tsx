@@ -100,6 +100,7 @@ export default function NotesScreen() {
                 placeholder="Write a note…"
                 multiline
                 numberOfLines={3}
+                style={styles.composerInput}
               />
               <FormField
                 label="Noted at (YYYY-MM-DDTHH:mm)"
@@ -127,6 +128,7 @@ export default function NotesScreen() {
 const styles = StyleSheet.create({
   list: { flex: 1 },
   header: { marginBottom: spacing.sm, gap: spacing.md },
+  composerInput: { minHeight: 72, textAlignVertical: 'top' },
   error: { color: colors.danger, fontSize: fontSize.sm },
   sectionLabel: {
     color: colors.muted,

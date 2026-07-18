@@ -6,11 +6,15 @@ interface Props extends TextInputProps {
   label: string;
 }
 
-export function FormField({ label, ...inputProps }: Props) {
+export function FormField({ label, style, ...inputProps }: Props) {
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
-      <TextInput style={styles.input} placeholderTextColor={colors.muted} {...inputProps} />
+      <TextInput
+        style={[styles.input, style]}
+        placeholderTextColor={colors.muted}
+        {...inputProps}
+      />
     </View>
   );
 }
