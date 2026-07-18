@@ -51,10 +51,10 @@ and add who-logged attribution. Future features build in this style.
 ## Attribution (profiles)
 
 - Migration `0004_profiles.sql`: `profiles` table — `id uuid pk references
-  auth.users`, `display_name text not null`, `color text not null` (hex for the
+auth.users`, `display_name text not null`, `color text not null` (hex for the
   avatar), RLS authenticated full access. User fills the two rows manually.
 - Also in 0004: partial unique index `one_open_feed_per_baby on feeds (baby_id)
-  where ended_at is null` (clears deferred feeding backlog item).
+where ended_at is null` (clears deferred feeding backlog item).
 - `Avatar` component: circle in `profile.color` with `display_name` initial.
   Shown on history rows (sleep/feeding) per design. Missing profile row →
   fallback neutral avatar with "?".

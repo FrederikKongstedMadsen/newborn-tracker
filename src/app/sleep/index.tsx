@@ -84,7 +84,13 @@ export default function SleepScreen() {
                 />
               </Card>
             )}
-            <SleepChart sleeps={sleeps ?? []} width={width - 32} />
+            <Card>
+              <View style={styles.chartTitleRow}>
+                <Text style={styles.chartTitle}>Sleep per day</Text>
+                <Text style={styles.chartSubtitle}>hours · last 7 days</Text>
+              </View>
+              <SleepChart sleeps={sleeps ?? []} width={width - 32 - spacing.md * 2} />
+            </Card>
             <Text style={styles.sectionLabel}>RECENT SLEEPS</Text>
           </View>
         }
@@ -107,6 +113,13 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   clockWrap: { alignItems: 'center' },
+  chartTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  chartTitle: { fontFamily: fontFamily.bold, fontSize: fontSize.md, color: colors.text },
+  chartSubtitle: { fontFamily: fontFamily.regular, fontSize: fontSize.sm, color: colors.muted },
   sectionLabel: {
     color: colors.muted,
     fontFamily: fontFamily.semibold,
