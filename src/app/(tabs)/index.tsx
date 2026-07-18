@@ -6,6 +6,7 @@ import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { GrowthStatusCard } from '@/features/home/GrowthStatusCard';
 import { ageInDays } from '@/features/growth/who/curveMath';
+import { todayIso } from '@/lib/dates';
 import { colors, fontSize } from '@/lib/theme';
 
 export default function Home() {
@@ -18,9 +19,7 @@ export default function Home() {
       {baby ? (
         <>
           <Text style={styles.name}>{baby.name}</Text>
-          <Text style={styles.age}>
-            {ageInDays(baby.birth_date, new Date().toISOString().slice(0, 10))} days old
-          </Text>
+          <Text style={styles.age}>{ageInDays(baby.birth_date, todayIso())} days old</Text>
           <GrowthStatusCard babyId={baby.id} />
         </>
       ) : (

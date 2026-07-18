@@ -4,6 +4,7 @@ import { StyleSheet, Text } from 'react-native';
 import { Card } from '@/components/Card';
 import { useGrowthMeasurements } from '@/features/growth/hooks';
 import type { GrowthMeasurement } from '@/features/growth/types';
+import { relativeDays } from '@/lib/dates';
 import { colors, fontSize, spacing } from '@/lib/theme';
 
 function latestSummary(m: GrowthMeasurement): string {
@@ -12,13 +13,6 @@ function latestSummary(m: GrowthMeasurement): string {
   if (m.height_cm != null) parts.push(`${m.height_cm} cm`);
   if (m.head_circumference_cm != null) parts.push(`head ${m.head_circumference_cm} cm`);
   return parts.join(' · ');
-}
-
-function relativeDays(dateIso: string): string {
-  const days = Math.round((Date.now() - Date.parse(`${dateIso}T00:00:00`)) / 86_400_000);
-  if (days <= 0) return 'today';
-  if (days === 1) return 'yesterday';
-  return `${days}d ago`;
 }
 
 export function GrowthStatusCard({ babyId }: { babyId: string }) {
