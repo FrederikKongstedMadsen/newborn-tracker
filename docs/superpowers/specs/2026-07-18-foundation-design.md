@@ -21,7 +21,9 @@ diapers, etc.) comes later in separate specs.
 - **App:** Expo (managed workflow), TypeScript strict, Expo Router for file-based navigation.
 - **Backend/DB:** Supabase (Postgres, auth, realtime) via `@supabase/supabase-js`.
 - **Data layer:** `@tanstack/react-query` over Supabase calls — caching and refetching now, realtime integration later.
-- **Session storage:** `expo-secure-store` for persisted auth tokens.
+- **Session storage:** `@react-native-async-storage/async-storage` for persisted auth
+  tokens (official Supabase Expo pattern; `expo-secure-store` was considered but its
+  2048-byte value limit is too small for Supabase session JSON).
 
 ## Auth Model
 
