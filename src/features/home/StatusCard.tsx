@@ -9,20 +9,21 @@ interface Props {
   value: string;
   meta: string;
   onPress?: () => void;
+  valueColor?: string;
 }
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export function StatusCard({ tracker, value, meta, onPress }: Props) {
+export function StatusCard({ tracker, value, meta, onPress, valueColor }: Props) {
   const { accent, tint, icon } = trackerColors[tracker];
 
   return (
     <Card onPress={onPress}>
       <IconChip icon={icon} accent={accent} tint={tint} />
       <Text style={styles.title}>{capitalize(tracker)}</Text>
-      <Text style={styles.value}>{value}</Text>
+      <Text style={[styles.value, valueColor ? { color: valueColor } : null]}>{value}</Text>
       <Text style={styles.meta}>{meta}</Text>
     </Card>
   );

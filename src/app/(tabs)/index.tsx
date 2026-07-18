@@ -9,6 +9,7 @@ import { useBaby } from '@/features/baby/hooks';
 import { DiaperStatusCard } from '@/features/home/DiaperStatusCard';
 import { FeedingStatusCard } from '@/features/home/FeedingStatusCard';
 import { GrowthStatusCard } from '@/features/home/GrowthStatusCard';
+import { SickStatusCard } from '@/features/home/SickStatusCard';
 import { SleepStatusCard } from '@/features/home/SleepStatusCard';
 import { ageInDays } from '@/features/growth/who/curveMath';
 import { todayIso } from '@/lib/dates';
@@ -62,6 +63,9 @@ export default function Home() {
             </View>
             <View style={styles.cell}>
               <GrowthStatusCard babyId={baby.id} />
+            </View>
+            <View style={styles.cell}>
+              <SickStatusCard babyId={baby.id} />
             </View>
           </View>
         </>
