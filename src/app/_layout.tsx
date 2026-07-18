@@ -10,20 +10,36 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { useSession } from '@/features/auth/useSession';
 import { queryClient } from '@/lib/queryClient';
+import { colors, fontFamily } from '@/lib/theme';
 
 function AuthGate() {
   const { session, isLoading } = useSession();
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator />
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.background,
+        }}
+      >
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <Stack>
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.background },
+        headerTitleStyle: { fontFamily: fontFamily.bold, color: colors.text },
+        headerTintColor: colors.primary,
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: colors.background },
+      }}
+    >
       <Stack.Protected guard={session !== null}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="growth/index" options={{ title: 'Growth' }} />

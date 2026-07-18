@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
-import { colors } from '@/lib/theme';
+import { colors, fontFamily } from '@/lib/theme';
 
 export default function TabsLayout() {
   return (
@@ -10,6 +10,14 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
+        tabBarStyle: {
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
+        },
+        tabBarLabelStyle: {
+          fontFamily: fontFamily.semibold,
+          fontSize: 11,
+        },
       }}
     >
       <Tabs.Screen
