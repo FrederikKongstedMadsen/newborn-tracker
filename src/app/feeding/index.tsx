@@ -1,37 +1,66 @@
 import { router } from 'expo-router';
-import {
-  Button,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { useState } from 'react';
+import { FlatList, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
+import { Avatar } from '@/components/Avatar';
+import { Card } from '@/components/Card';
+import { IconChip } from '@/components/IconChip';
 import { Screen } from '@/components/Screen';
+import { SegmentedControl } from '@/components/SegmentedControl';
 import { useBaby } from '@/features/baby/hooks';
-import { ActiveFeedCard } from '@/features/feeding/ActiveFeedCard';
+import { BreastFeedCard } from '@/features/feeding/BreastFeedCard';
 import { FeedingChart } from '@/features/feeding/FeedingChart';
 import { feedSummary } from '@/features/feeding/feedMath';
-import { useActiveFeed, useFeeds, useStartBreastFeed } from '@/features/feeding/hooks';
+import { FormulaForm } from '@/features/feeding/FormulaForm';
+import { useActiveFeed, useFeeds } from '@/features/feeding/hooks';
 import type { Feed } from '@/features/feeding/types';
-import { colors, spacing } from '@/lib/theme';
+import { useNowTick } from '@/features/feeding/useNowTick';
+import { useProfileMap } from '@/features/profiles/hooks';
+import { relativeTime, timeHHmm } from '@/lib/dates';
+import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
 
-function row(item: Feed) {
-  const when = new Date(item.started_at).toLocaleString([], {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  });
-  return `${when} · ${feedSummary(item)}`;
+type Segment = 'Breast' | 'Formula';
+
+function rowDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function FeedRow({ item, now }: { item: Feed; now: number }) {
+  const { data: profileMap } = useProfileMap();
+  const profile = profileMap?.get(item.created_by);
+
+  return (
+    <Pressable style={styles.row} onPress={() => router.push(`/feeding/${item.id}`)}>
+      <IconChip
+        icon={trackerColors.feeding.icon}
+        accent={trackerColors.feeding.accent}
+        tint={trackerColors.feeding.tint}
+      />
+      <View style={styles.rowBody}>
+        <Text style={styles.rowSummary}>{feedSummary(item)}</Text>
+        <Text style={styles.rowDatetime}>
+          {timeHHmm(item.started_at)} · {rowDate(item.started_at)}
+        </Text>
+      </View>
+      <View style={styles.rowMeta}>
+        <Text style={styles.rowWhen}>{relativeTime(item.ended_at ?? item.started_at, now)}</Text>
+        <View style={styles.rowProfile}>
+          <Avatar profile={profile} size={20} />
+          <Text style={styles.rowName}>{profile?.display_name}</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
 }
 
 export default function FeedingScreen() {
   const { data: baby } = useBaby();
   const { data: activeFeed } = useActiveFeed(baby?.id);
   const { data: feeds } = useFeeds(baby?.id);
-  const startBreastFeed = useStartBreastFeed();
   const { width } = useWindowDimensions();
+  const now = useNowTick(false);
+  const [segment, setSegment] = useState<Segment>('Breast');
 
   return (
     <Screen scroll={false}>
@@ -41,37 +70,29 @@ export default function FeedingScreen() {
         keyExtractor={(f) => f.id}
         ListHeaderComponent={
           <View style={styles.header}>
-            {activeFeed ? (
-              <ActiveFeedCard feed={activeFeed} />
+            <SegmentedControl
+              options={['Breast', 'Formula']}
+              selected={segment}
+              onSelect={(option) => setSegment(option as Segment)}
+            />
+            {segment === 'Breast' ? (
+              <BreastFeedCard babyId={baby?.id} feed={activeFeed} />
             ) : (
-              <View style={styles.startRow}>
-                <View style={styles.startButton}>
-                  <Button
-                    title="Start left"
-                    disabled={!baby || startBreastFeed.isPending}
-                    onPress={() => startBreastFeed.mutate({ babyId: baby!.id, side: 'left' })}
-                  />
-                </View>
-                <View style={styles.startButton}>
-                  <Button
-                    title="Start right"
-                    disabled={!baby || startBreastFeed.isPending}
-                    onPress={() => startBreastFeed.mutate({ babyId: baby!.id, side: 'right' })}
-                  />
-                </View>
-                <View style={styles.startButton}>
-                  <Button title="Log formula" onPress={() => router.push('/feeding/formula')} />
-                </View>
-              </View>
+              <Card>
+                <FormulaForm babyId={baby?.id} />
+              </Card>
             )}
-            <FeedingChart feeds={feeds ?? []} width={width - 32} />
+            <Card>
+              <View style={styles.chartTitleRow}>
+                <Text style={styles.chartTitle}>Feeds per day</Text>
+                <Text style={styles.chartSubtitle}>count · last 7 days</Text>
+              </View>
+              <FeedingChart feeds={feeds ?? []} width={width - 32 - spacing.md * 2} />
+            </Card>
+            <Text style={styles.sectionLabel}>RECENT FEEDS</Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <Pressable style={styles.row} onPress={() => router.push(`/feeding/${item.id}`)}>
-            <Text>{row(item)}</Text>
-          </Pressable>
-        )}
+        renderItem={({ item }) => <FeedRow item={item} now={now} />}
         ListEmptyComponent={<Text style={styles.empty}>No feeds yet</Text>}
       />
     </Screen>
@@ -80,9 +101,35 @@ export default function FeedingScreen() {
 
 const styles = StyleSheet.create({
   list: { flex: 1 },
-  header: { marginBottom: spacing.md },
-  startRow: { flexDirection: 'row', gap: spacing.sm },
-  startButton: { flex: 1 },
-  row: { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
+  header: { marginBottom: spacing.sm, gap: spacing.md },
+  chartTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  chartTitle: { fontFamily: fontFamily.bold, fontSize: fontSize.md, color: colors.text },
+  chartSubtitle: { fontFamily: fontFamily.regular, fontSize: fontSize.sm, color: colors.muted },
+  sectionLabel: {
+    color: colors.muted,
+    fontFamily: fontFamily.semibold,
+    fontSize: fontSize.sm,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm + spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  rowBody: { flex: 1, gap: 2 },
+  rowSummary: { fontFamily: fontFamily.bold, fontSize: fontSize.md, color: colors.text },
+  rowDatetime: { color: colors.mutedDark, fontFamily: fontFamily.regular, fontSize: fontSize.sm },
+  rowMeta: { alignItems: 'flex-end', gap: spacing.xs },
+  rowWhen: { color: colors.muted, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
+  rowProfile: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  rowName: { color: colors.text, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
   empty: { textAlign: 'center', color: colors.muted, marginTop: 24 },
 });

@@ -5,11 +5,10 @@ import { Alert, Button, StyleSheet, Text } from 'react-native';
 import { FormField } from '@/components/FormField';
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
+import { parseVolume } from '@/features/feeding/FormulaForm';
 import { useDeleteFeed, useFeeds, useUpdateFeed } from '@/features/feeding/hooks';
 import type { Feed } from '@/features/feeding/types';
 import { colors } from '@/lib/theme';
-
-import { parseVolume } from './formula';
 
 const DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 

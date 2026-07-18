@@ -4,14 +4,14 @@ import Svg, { Rect, Text as SvgText } from 'react-native-svg';
 
 import { makeScale } from '@/features/growth/chartScale';
 import { todayIso } from '@/lib/dates';
-import { colors } from '@/lib/theme';
+import { colors, fontFamily, trackerColors } from '@/lib/theme';
 
 import { dailyTotals } from './feedMath';
 import type { Feed } from './types';
 
 const HEIGHT = 140;
 const BAR_GAP = 8;
-const LABEL_SPACE = { top: 16, bottom: 16 };
+const LABEL_SPACE = { top: 8, bottom: 36 };
 const WEEKDAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 interface Props {
@@ -39,17 +39,6 @@ export function FeedingChart({ feeds, width }: Props) {
           const weekday = WEEKDAY_LETTERS[new Date(`${day.dateIso}T00:00:00`).getDay()];
           return (
             <Fragment key={day.dateIso}>
-              {day.count > 0 ? (
-                <SvgText
-                  x={x + barWidth / 2}
-                  y={LABEL_SPACE.top - 4}
-                  fontSize={10}
-                  fill={colors.muted}
-                  textAnchor="middle"
-                >
-                  {day.count}
-                </SvgText>
-              ) : null}
               <Rect
                 x={x}
                 y={y}
@@ -57,8 +46,18 @@ export function FeedingChart({ feeds, width }: Props) {
                 height={Math.max(barHeight, 1)}
                 rx={4}
                 ry={4}
-                fill={colors.primary}
+                fill={trackerColors.feeding.accent}
               />
+              <SvgText
+                x={x + barWidth / 2}
+                y={HEIGHT - LABEL_SPACE.bottom + 16}
+                fontSize={13}
+                fontFamily={fontFamily.bold}
+                fill={colors.text}
+                textAnchor="middle"
+              >
+                {day.count}
+              </SvgText>
               <SvgText
                 x={x + barWidth / 2}
                 y={HEIGHT - 4}

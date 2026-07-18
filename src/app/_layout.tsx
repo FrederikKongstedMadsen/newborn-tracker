@@ -30,7 +30,6 @@ function AuthGate() {
         <Stack.Screen name="growth/new" options={{ title: 'Add measurement' }} />
         <Stack.Screen name="growth/[id]" options={{ title: 'Edit measurement' }} />
         <Stack.Screen name="feeding/index" options={{ title: 'Feeding' }} />
-        <Stack.Screen name="feeding/formula" options={{ title: 'Log formula' }} />
         <Stack.Screen name="feeding/[id]" options={{ title: 'Edit feed' }} />
         <Stack.Screen name="sleep/index" options={{ title: 'Sleep' }} />
         <Stack.Screen name="sleep/[id]" options={{ title: 'Edit sleep' }} />
