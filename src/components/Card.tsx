@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
-import { colors, spacing } from '@/lib/theme';
+import { colors, radius, spacing } from '@/lib/theme';
 
 interface Props {
   children: ReactNode;
@@ -23,11 +23,14 @@ export function Card({ children, onPress }: Props) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: radius.card,
     padding: spacing.md,
     gap: spacing.xs,
+    shadowColor: '#221f1b',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   pressed: { opacity: 0.7 },
 });
