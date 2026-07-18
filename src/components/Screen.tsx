@@ -22,7 +22,7 @@ export function Screen({ children, scroll = true, topInset = false }: Props) {
   };
 
   if (!scroll) {
-    return <View style={[styles.container, padding]}>{children}</View>;
+    return <View style={[styles.container, styles.content, padding]}>{children}</View>;
   }
   return (
     <ScrollView
