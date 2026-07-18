@@ -9,8 +9,9 @@ import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/them
 const TRACKERS = [
   { title: 'Sleep', tracker: 'sleep' as const, href: '/sleep' as const },
   { title: 'Feeding', tracker: 'feeding' as const, href: '/feeding' as const },
+  { title: 'Diaper', tracker: 'diaper' as const, href: '/diaper' as const },
   { title: 'Growth', tracker: 'growth' as const, href: '/growth' as const },
-  // future: diapers, sick, notes
+  // future: sick, notes
 ];
 
 export default function Track() {

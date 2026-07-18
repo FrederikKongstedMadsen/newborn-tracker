@@ -6,6 +6,7 @@ import { Card } from '@/components/Card';
 import { IconChip } from '@/components/IconChip';
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
+import { DiaperStatusCard } from '@/features/home/DiaperStatusCard';
 import { FeedingStatusCard } from '@/features/home/FeedingStatusCard';
 import { GrowthStatusCard } from '@/features/home/GrowthStatusCard';
 import { SleepStatusCard } from '@/features/home/SleepStatusCard';
@@ -55,6 +56,9 @@ export default function Home() {
             </View>
             <View style={styles.cell}>
               <FeedingStatusCard babyId={baby.id} />
+            </View>
+            <View style={styles.cell}>
+              <DiaperStatusCard babyId={baby.id} />
             </View>
             <View style={styles.cell}>
               <GrowthStatusCard babyId={baby.id} />
