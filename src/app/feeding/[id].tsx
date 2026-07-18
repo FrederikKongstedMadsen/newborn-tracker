@@ -45,17 +45,31 @@ export default function EditFeed() {
   const [volumeMl, setVolumeMl] = useState('');
   const [note, setNote] = useState('');
 
+  // Remember the values we prefilled from the loaded feed so save() can tell
+  // whether the user actually edited a field, vs. just re-saving the
+  // rounded-to-minutes display value (which would silently truncate the
+  // banked seconds on every note-only edit).
+  const [prefilledDatetime, setPrefilledDatetime] = useState('');
+  const [prefilledLeftMinutes, setPrefilledLeftMinutes] = useState('');
+  const [prefilledRightMinutes, setPrefilledRightMinutes] = useState('');
+
   // Sync form fields from the loaded feed whenever it changes, without a useEffect
   // (React docs: "Adjusting some state when a prop changes").
   const [prevFeed, setPrevFeed] = useState<Feed | undefined>(undefined);
   if (feed !== prevFeed) {
     setPrevFeed(feed);
     if (feed) {
-      setDatetime(toDatetimeLocal(feed.started_at));
-      setLeftMinutes(String(Math.round(feed.left_seconds / 60)));
-      setRightMinutes(String(Math.round(feed.right_seconds / 60)));
+      const nextDatetime = toDatetimeLocal(feed.started_at);
+      const nextLeftMinutes = String(Math.round(feed.left_seconds / 60));
+      const nextRightMinutes = String(Math.round(feed.right_seconds / 60));
+      setDatetime(nextDatetime);
+      setLeftMinutes(nextLeftMinutes);
+      setRightMinutes(nextRightMinutes);
       setVolumeMl(feed.volume_ml == null ? '' : String(feed.volume_ml));
       setNote(feed.note ?? '');
+      setPrefilledDatetime(nextDatetime);
+      setPrefilledLeftMinutes(nextLeftMinutes);
+      setPrefilledRightMinutes(nextRightMinutes);
     }
   }
 
@@ -85,24 +99,31 @@ export default function EditFeed() {
     }
     if (feed.type === 'breast') {
       if (left === null || right === null) return;
+      const datetimeChanged = datetime !== prefilledDatetime;
+      const leftChanged = leftMinutes !== prefilledLeftMinutes;
+      const rightChanged = rightMinutes !== prefilledRightMinutes;
       updateFeed.mutate(
         {
           id: feed.id,
-          started_at: new Date(datetime).toISOString(),
-          left_seconds: left * 60,
-          right_seconds: right * 60,
+          ...(datetimeChanged ? { started_at: new Date(datetime).toISOString() } : {}),
+          ...(leftChanged ? { left_seconds: left * 60 } : {}),
+          ...(rightChanged ? { right_seconds: right * 60 } : {}),
           note: note.trim() || null,
         },
         { onSuccess: () => router.back() },
       );
     } else {
       if (volume === null) return;
-      const iso = new Date(datetime).toISOString();
+      const datetimeChanged = datetime !== prefilledDatetime;
       updateFeed.mutate(
         {
           id: feed.id,
-          started_at: iso,
-          ended_at: iso,
+          ...(datetimeChanged
+            ? {
+                started_at: new Date(datetime).toISOString(),
+                ended_at: new Date(datetime).toISOString(),
+              }
+            : {}),
           volume_ml: volume,
           note: note.trim() || null,
         },
