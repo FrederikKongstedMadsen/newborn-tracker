@@ -21,7 +21,7 @@ const backgrounds: Record<Variant, string> = {
 
 const pressedBackgrounds: Record<Variant, string> = {
   primary: colors.primaryDark,
-  danger: colors.danger,
+  danger: colors.dangerDark,
   neutral: colors.border,
 };
 

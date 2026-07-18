@@ -10,6 +10,7 @@ export const colors = {
   primary: '#5a60c6',
   primaryDark: '#4a4fb0',
   danger: '#cf6257',
+  dangerDark: '#b04c42',
 };
 
 export type TrackerKind = 'sleep' | 'feeding' | 'diaper' | 'growth' | 'temperature' | 'notes';
