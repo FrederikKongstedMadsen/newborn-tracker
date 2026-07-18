@@ -2,6 +2,20 @@ function pad(n: number): string {
   return n.toString().padStart(2, '0');
 }
 
+export function localDateParts(date: Date): { y: number; m: string; d: string } {
+  return {
+    y: date.getFullYear(),
+    m: String(date.getMonth() + 1).padStart(2, '0'),
+    d: String(date.getDate()).padStart(2, '0'),
+  };
+}
+
+/** Returns the local calendar date of an ISO timestamp as 'YYYY-MM-DD'. */
+export function localDateIso(iso: string): string {
+  const { y, m, d } = localDateParts(new Date(iso));
+  return `${y}-${m}-${d}`;
+}
+
 /** Returns the local calendar date as 'YYYY-MM-DD'. Deliberately avoids
  * toISOString(), which is UTC and can be off by one near local midnight. */
 export function todayIso(): string {

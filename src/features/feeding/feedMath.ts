@@ -1,19 +1,7 @@
+import { localDateIso, localDateParts } from '@/lib/dates';
 import { formatDuration } from '@/lib/duration';
 
 import type { Feed, FeedSide } from './types';
-
-function localDateParts(date: Date): { y: number; m: string; d: string } {
-  return {
-    y: date.getFullYear(),
-    m: String(date.getMonth() + 1).padStart(2, '0'),
-    d: String(date.getDate()).padStart(2, '0'),
-  };
-}
-
-export function localDateIso(iso: string): string {
-  const { y, m, d } = localDateParts(new Date(iso));
-  return `${y}-${m}-${d}`;
-}
 
 export function sideElapsedSeconds(feed: Feed, side: FeedSide, nowMs: number): number {
   const banked = side === 'left' ? feed.left_seconds : feed.right_seconds;

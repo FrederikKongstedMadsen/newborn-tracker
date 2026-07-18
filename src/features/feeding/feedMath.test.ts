@@ -1,10 +1,6 @@
-import {
-  dailyTotals,
-  feedSummary,
-  localDateIso,
-  sideElapsedSeconds,
-  totalElapsedSeconds,
-} from './feedMath';
+import { localDateIso } from '@/lib/dates';
+
+import { dailyTotals, feedSummary, sideElapsedSeconds, totalElapsedSeconds } from './feedMath';
 import type { Feed } from './types';
 
 const base: Feed = {
