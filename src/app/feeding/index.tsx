@@ -22,15 +22,8 @@ import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/them
 
 type Segment = 'Breast' | 'Formula';
 
-function BreastFeedBanner({
-  feed,
-  now,
-  onPress,
-}: {
-  feed: Feed;
-  now: number;
-  onPress: () => void;
-}) {
+function BreastFeedBanner({ feed, onPress }: { feed: Feed; onPress: () => void }) {
+  const now = useNowTick(true);
   const seconds = totalElapsedSeconds(feed, now);
   return (
     <Card onPress={onPress}>
@@ -86,7 +79,6 @@ export default function FeedingScreen() {
   const { data: feeds } = useFeeds(baby?.id);
   const { width } = useWindowDimensions();
   const now = useNowTick(false);
-  const bannerNow = useNowTick(!!activeFeed);
   const [segment, setSegment] = useState<Segment>('Breast');
 
   return (
@@ -107,11 +99,7 @@ export default function FeedingScreen() {
             ) : (
               <>
                 {activeFeed ? (
-                  <BreastFeedBanner
-                    feed={activeFeed}
-                    now={bannerNow}
-                    onPress={() => setSegment('Breast')}
-                  />
+                  <BreastFeedBanner feed={activeFeed} onPress={() => setSegment('Breast')} />
                 ) : null}
                 <Card>
                   <FormulaForm babyId={baby?.id} />
