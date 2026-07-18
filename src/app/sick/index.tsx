@@ -1,0 +1,335 @@
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { Avatar } from '@/components/Avatar';
+import { Card } from '@/components/Card';
+import { FormField } from '@/components/FormField';
+import { IconChip } from '@/components/IconChip';
+import { PillButton } from '@/components/PillButton';
+import { Screen } from '@/components/Screen';
+import { SegmentedControl } from '@/components/SegmentedControl';
+import { useBaby } from '@/features/baby/hooks';
+import { useNowTick } from '@/features/feeding/useNowTick';
+import { useProfileMap } from '@/features/profiles/hooks';
+import { useDoses, useLogDose, useLogTemperature, useTemperatures } from '@/features/sick/hooks';
+import { doseSummary, isFever } from '@/features/sick/sickMath';
+import type { MedicineDose, Temperature } from '@/features/sick/types';
+import { relativeTime, timeHHmm } from '@/lib/dates';
+import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
+
+type Segment = 'Temperature' | 'Medicine';
+
+const DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+
+function parseDecimal(text: string): number | null {
+  const normalized = text.replace(',', '.').trim();
+  if (normalized === '') return null;
+  const value = Number(normalized);
+  return Number.isFinite(value) ? value : null;
+}
+
+function nowDatetimeLocal(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${day}T${hh}:${mm}`;
+}
+
+function rowDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function TemperatureRow({ item, now }: { item: Temperature; now: number }) {
+  const { data: profileMap } = useProfileMap();
+  const profile = profileMap?.get(item.created_by);
+  const fever = isFever(item.celsius);
+
+  return (
+    <Pressable style={styles.row} onPress={() => router.push(`/sick/temperature/${item.id}`)}>
+      <IconChip
+        icon={trackerColors.temperature.icon}
+        accent={trackerColors.temperature.accent}
+        tint={trackerColors.temperature.tint}
+      />
+      <View style={styles.rowBody}>
+        <Text style={[styles.rowValue, fever && styles.rowValueFever]}>
+          {item.celsius.toFixed(1)} °C
+        </Text>
+        <Text style={styles.rowDatetime}>
+          {timeHHmm(item.measured_at)} · {rowDate(item.measured_at)}
+        </Text>
+      </View>
+      <View style={styles.rowMeta}>
+        <Text style={styles.rowWhen}>{relativeTime(item.measured_at, now)}</Text>
+        <View style={styles.rowProfile}>
+          <Avatar profile={profile} size={20} />
+          <Text style={styles.rowName}>{profile?.display_name}</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+function DoseRow({ item, now }: { item: MedicineDose; now: number }) {
+  const { data: profileMap } = useProfileMap();
+  const profile = profileMap?.get(item.created_by);
+
+  return (
+    <Pressable style={styles.row} onPress={() => router.push(`/sick/medicine/${item.id}`)}>
+      <IconChip
+        icon={trackerColors.temperature.icon}
+        accent={trackerColors.temperature.accent}
+        tint={trackerColors.temperature.tint}
+      />
+      <View style={styles.rowBody}>
+        <Text style={styles.rowValue}>{doseSummary(item)}</Text>
+        <Text style={styles.rowDatetime}>
+          {timeHHmm(item.given_at)} · {rowDate(item.given_at)}
+        </Text>
+      </View>
+      <View style={styles.rowMeta}>
+        <Text style={styles.rowWhen}>{relativeTime(item.given_at, now)}</Text>
+        <View style={styles.rowProfile}>
+          <Avatar profile={profile} size={20} />
+          <Text style={styles.rowName}>{profile?.display_name}</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+function TemperatureForm({ babyId }: { babyId: string | undefined }) {
+  const logTemperature = useLogTemperature();
+  const [celsiusText, setCelsiusText] = useState('');
+  const [datetime, setDatetime] = useState(nowDatetimeLocal);
+  const [note, setNote] = useState('');
+
+  const celsius = parseDecimal(celsiusText);
+  const datetimeValid = DATETIME_RE.test(datetime) && !Number.isNaN(new Date(datetime).getTime());
+  const valid = !!babyId && celsius !== null && celsius >= 30 && celsius <= 43 && datetimeValid;
+
+  function save() {
+    if (!valid || celsius === null) return;
+    logTemperature.mutate(
+      {
+        baby_id: babyId!,
+        measured_at: new Date(datetime).toISOString(),
+        celsius,
+        note: note.trim() || null,
+      },
+      {
+        onSuccess: () => {
+          setCelsiusText('');
+          setDatetime(nowDatetimeLocal());
+          setNote('');
+        },
+      },
+    );
+  }
+
+  return (
+    <Card>
+      <FormField
+        label="Temperature (°C)"
+        value={celsiusText}
+        onChangeText={setCelsiusText}
+        keyboardType="decimal-pad"
+        placeholder="37.5"
+      />
+      <FormField
+        label="Measured at (YYYY-MM-DDTHH:mm)"
+        value={datetime}
+        onChangeText={setDatetime}
+      />
+      <FormField label="Note" value={note} onChangeText={setNote} />
+      {logTemperature.isError ? (
+        <Text style={styles.error}>{logTemperature.error.message}</Text>
+      ) : null}
+      <PillButton
+        title="Log temperature"
+        icon="thermometer"
+        disabled={!valid || logTemperature.isPending}
+        onPress={save}
+      />
+    </Card>
+  );
+}
+
+function LastDoseBanner({
+  latestDose,
+  now,
+}: {
+  latestDose: MedicineDose | undefined;
+  now: number;
+}) {
+  return (
+    <Card>
+      <View style={styles.bannerRow}>
+        <IconChip
+          icon={trackerColors.temperature.icon}
+          accent={trackerColors.temperature.accent}
+          tint={trackerColors.temperature.tint}
+          size={32}
+        />
+        <Text style={styles.bannerText}>
+          {latestDose
+            ? `Last ${latestDose.medicine} · ${relativeTime(latestDose.given_at, now)}`
+            : 'No doses logged'}
+        </Text>
+      </View>
+    </Card>
+  );
+}
+
+function DoseForm({ babyId }: { babyId: string | undefined }) {
+  const logDose = useLogDose();
+  const [amountText, setAmountText] = useState('');
+  const [unit, setUnit] = useState<'ml' | 'mg'>('ml');
+  const [medicine, setMedicine] = useState('paracetamol');
+  const [datetime, setDatetime] = useState(nowDatetimeLocal);
+  const [note, setNote] = useState('');
+
+  const amount = parseDecimal(amountText);
+  const datetimeValid = DATETIME_RE.test(datetime) && !Number.isNaN(new Date(datetime).getTime());
+  const valid = !!babyId && amount !== null && amount > 0 && !!medicine.trim() && datetimeValid;
+
+  function save() {
+    if (!valid || amount === null) return;
+    logDose.mutate(
+      {
+        baby_id: babyId!,
+        given_at: new Date(datetime).toISOString(),
+        medicine: medicine.trim(),
+        amount,
+        unit,
+        note: note.trim() || null,
+      },
+      {
+        onSuccess: () => {
+          setAmountText('');
+          setDatetime(nowDatetimeLocal());
+          setNote('');
+        },
+      },
+    );
+  }
+
+  return (
+    <Card>
+      <FormField
+        label="Amount"
+        value={amountText}
+        onChangeText={setAmountText}
+        keyboardType="decimal-pad"
+        placeholder="2.5"
+      />
+      <SegmentedControl
+        options={['ml', 'mg']}
+        selected={unit}
+        onSelect={(o) => setUnit(o as 'ml' | 'mg')}
+      />
+      <FormField label="Medicine" value={medicine} onChangeText={setMedicine} />
+      <FormField label="Given at (YYYY-MM-DDTHH:mm)" value={datetime} onChangeText={setDatetime} />
+      <FormField label="Note" value={note} onChangeText={setNote} />
+      {logDose.isError ? <Text style={styles.error}>{logDose.error.message}</Text> : null}
+      <PillButton
+        title="Log dose"
+        icon="medkit"
+        disabled={!valid || logDose.isPending}
+        onPress={save}
+      />
+    </Card>
+  );
+}
+
+export default function SickScreen() {
+  const { data: baby } = useBaby();
+  const { data: temperatures } = useTemperatures(baby?.id);
+  const { data: doses } = useDoses(baby?.id);
+  const now = useNowTick(false);
+  const [segment, setSegment] = useState<Segment>('Temperature');
+
+  const latestDose = doses?.[0];
+
+  return (
+    <Screen scroll={false}>
+      {segment === 'Temperature' ? (
+        <FlatList
+          style={styles.list}
+          data={temperatures ?? []}
+          keyExtractor={(t) => t.id}
+          ListHeaderComponent={
+            <View style={styles.header}>
+              <SegmentedControl
+                options={['Temperature', 'Medicine']}
+                selected={segment}
+                onSelect={(option) => setSegment(option as Segment)}
+              />
+              <TemperatureForm babyId={baby?.id} />
+              <Text style={styles.sectionLabel}>RECENT TEMPERATURES</Text>
+            </View>
+          }
+          renderItem={({ item }) => <TemperatureRow item={item} now={now} />}
+          ListEmptyComponent={<Text style={styles.empty}>No temperatures yet</Text>}
+        />
+      ) : (
+        <FlatList
+          style={styles.list}
+          data={doses ?? []}
+          keyExtractor={(d) => d.id}
+          ListHeaderComponent={
+            <View style={styles.header}>
+              <SegmentedControl
+                options={['Temperature', 'Medicine']}
+                selected={segment}
+                onSelect={(option) => setSegment(option as Segment)}
+              />
+              <LastDoseBanner latestDose={latestDose} now={now} />
+              <DoseForm babyId={baby?.id} />
+              <Text style={styles.sectionLabel}>RECENT DOSES</Text>
+            </View>
+          }
+          renderItem={({ item }) => <DoseRow item={item} now={now} />}
+          ListEmptyComponent={<Text style={styles.empty}>No doses yet</Text>}
+        />
+      )}
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  list: { flex: 1 },
+  header: { marginBottom: spacing.sm, gap: spacing.md },
+  bannerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  bannerText: { fontFamily: fontFamily.semibold, fontSize: fontSize.md, color: colors.text },
+  sectionLabel: {
+    color: colors.muted,
+    fontFamily: fontFamily.semibold,
+    fontSize: fontSize.sm,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm + spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  rowBody: { flex: 1, gap: 2 },
+  rowValue: { fontFamily: fontFamily.bold, fontSize: fontSize.md, color: colors.text },
+  rowValueFever: { color: colors.danger },
+  rowDatetime: { color: colors.mutedDark, fontFamily: fontFamily.regular, fontSize: fontSize.sm },
+  rowMeta: { alignItems: 'flex-end', gap: spacing.xs },
+  rowWhen: { color: colors.muted, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
+  rowProfile: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  rowName: { color: colors.text, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
+  empty: { textAlign: 'center', color: colors.muted, marginTop: 24 },
+  error: { color: colors.danger, fontSize: fontSize.sm },
+});
