@@ -9,7 +9,9 @@ interface Props {
 }
 
 export function Avatar({ profile, size = 24 }: Props) {
+  const emoji = profile?.emoji?.trim();
   const initial = profile?.display_name.trim().charAt(0).toUpperCase() || '?';
+  const glyph = emoji ? emoji : initial;
   const backgroundColor = profile?.color ?? colors.muted;
   return (
     <View
@@ -18,7 +20,7 @@ export function Avatar({ profile, size = 24 }: Props) {
         { width: size, height: size, borderRadius: size / 2, backgroundColor },
       ]}
     >
-      <Text style={[styles.initial, { fontSize: size * 0.5 }]}>{initial}</Text>
+      <Text style={[styles.initial, { fontSize: size * 0.5 }]}>{glyph}</Text>
     </View>
   );
 }
