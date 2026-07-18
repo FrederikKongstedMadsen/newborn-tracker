@@ -1,15 +1,15 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/Card';
+import { IconChip } from '@/components/IconChip';
 import { Screen } from '@/components/Screen';
-import { colors, fontSize, spacing } from '@/lib/theme';
+import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
 
 const TRACKERS = [
-  { title: 'Growth', icon: 'trending-up' as const, href: '/growth' as const },
-  { title: 'Feeding', icon: 'water' as const, href: '/feeding' as const },
-  { title: 'Sleep', icon: 'moon' as const, href: '/sleep' as const },
+  { title: 'Sleep', tracker: 'sleep' as const, href: '/sleep' as const },
+  { title: 'Feeding', tracker: 'feeding' as const, href: '/feeding' as const },
+  { title: 'Growth', tracker: 'growth' as const, href: '/growth' as const },
   // future: diapers, sick, notes
 ];
 
@@ -20,7 +20,11 @@ export default function Track() {
       {TRACKERS.map((t) => (
         <Card key={t.href} onPress={() => router.push(t.href)}>
           <View style={styles.row}>
-            <Ionicons name={t.icon} size={22} color={colors.primary} />
+            <IconChip
+              icon={trackerColors[t.tracker].icon}
+              accent={trackerColors[t.tracker].accent}
+              tint={trackerColors[t.tracker].tint}
+            />
             <Text style={styles.title}>{t.title}</Text>
           </View>
         </Card>
@@ -30,7 +34,7 @@ export default function Track() {
 }
 
 const styles = StyleSheet.create({
-  heading: { fontSize: fontSize.xl, fontWeight: '700', color: colors.text },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  title: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
+  heading: { fontSize: fontSize.xl, fontFamily: fontFamily.bold, color: colors.text },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  title: { fontSize: fontSize.md, fontFamily: fontFamily.semibold, color: colors.text },
 });

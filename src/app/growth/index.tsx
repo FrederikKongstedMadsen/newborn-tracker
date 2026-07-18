@@ -1,22 +1,21 @@
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useState } from 'react';
-import {
-  Button,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
+import { Avatar } from '@/components/Avatar';
+import { IconChip } from '@/components/IconChip';
+import { PillButton } from '@/components/PillButton';
 import { Screen } from '@/components/Screen';
+import { SegmentedControl } from '@/components/SegmentedControl';
 import { useBaby } from '@/features/baby/hooks';
+import { useNowTick } from '@/features/feeding/useNowTick';
 import { GrowthChart } from '@/features/growth/GrowthChart';
 import { useGrowthMeasurements } from '@/features/growth/hooks';
 import type { GrowthMeasurement } from '@/features/growth/types';
 import type { Indicator } from '@/features/growth/who/types';
-import { colors } from '@/lib/theme';
+import { useProfileMap } from '@/features/profiles/hooks';
+import { relativeTime } from '@/lib/dates';
+import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
 
 const INDICATORS: { value: Indicator; label: string }[] = [
   { value: 'weight-for-age', label: 'Weight' },
@@ -32,11 +31,38 @@ function summary(m: GrowthMeasurement): string {
   return parts.join(' · ');
 }
 
+function GrowthRow({ item, now }: { item: GrowthMeasurement; now: number }) {
+  const { data: profileMap } = useProfileMap();
+  const profile = profileMap?.get(item.created_by);
+
+  return (
+    <Pressable style={styles.row} onPress={() => router.push(`/growth/${item.id}`)}>
+      <IconChip
+        icon={trackerColors.growth.icon}
+        accent={trackerColors.growth.accent}
+        tint={trackerColors.growth.tint}
+      />
+      <View style={styles.rowBody}>
+        <Text style={styles.rowSummary}>{summary(item)}</Text>
+        <Text style={styles.rowDate}>{item.measured_at}</Text>
+      </View>
+      <View style={styles.rowMeta}>
+        <Text style={styles.rowWhen}>{relativeTime(item.measured_at, now)}</Text>
+        <View style={styles.rowProfile}>
+          <Avatar profile={profile} size={20} />
+          <Text style={styles.rowName}>{profile?.display_name}</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
 export default function GrowthScreen() {
   const { data: baby } = useBaby();
   const { data: measurements } = useGrowthMeasurements(baby?.id);
   const [indicator, setIndicator] = useState<Indicator>('weight-for-age');
   const { width } = useWindowDimensions();
+  const now = useNowTick(false);
 
   return (
     <Screen scroll={false}>
@@ -46,28 +72,14 @@ export default function GrowthScreen() {
         keyExtractor={(m) => m.id}
         ListHeaderComponent={
           baby ? (
-            <>
-              <View style={styles.switcher}>
-                {INDICATORS.map((opt) => (
-                  <Pressable
-                    key={opt.value}
-                    style={[
-                      styles.switcherButton,
-                      indicator === opt.value && styles.switcherButtonActive,
-                    ]}
-                    onPress={() => setIndicator(opt.value)}
-                  >
-                    <Text
-                      style={[
-                        styles.switcherLabel,
-                        indicator === opt.value && styles.switcherLabelActive,
-                      ]}
-                    >
-                      {opt.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+            <View style={styles.header}>
+              <SegmentedControl
+                options={INDICATORS.map((opt) => opt.label)}
+                selected={INDICATORS.find((opt) => opt.value === indicator)!.label}
+                onSelect={(label) =>
+                  setIndicator(INDICATORS.find((opt) => opt.label === label)!.value)
+                }
+              />
               <GrowthChart
                 indicator={indicator}
                 sex={baby.sex}
@@ -76,39 +88,46 @@ export default function GrowthScreen() {
                 width={width - 32}
                 height={260}
               />
-            </>
+              <PillButton
+                title="Add measurement"
+                icon="add"
+                onPress={() => router.push('/growth/new')}
+              />
+              <Text style={styles.sectionLabel}>MEASUREMENTS</Text>
+            </View>
           ) : null
         }
-        renderItem={({ item }) => (
-          <Pressable style={styles.row} onPress={() => router.push(`/growth/${item.id}`)}>
-            <Text style={styles.date}>{item.measured_at}</Text>
-            <Text>{summary(item)}</Text>
-          </Pressable>
-        )}
+        renderItem={({ item }) => <GrowthRow item={item} now={now} />}
         ListEmptyComponent={<Text style={styles.empty}>No measurements yet</Text>}
       />
-      <Link href="/growth/new" asChild>
-        <Button title="Add measurement" />
-      </Link>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   list: { flex: 1 },
-  switcher: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  switcherButton: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
+  header: { marginBottom: spacing.sm, gap: spacing.md },
+  sectionLabel: {
+    color: colors.muted,
+    fontFamily: fontFamily.semibold,
+    fontSize: fontSize.sm,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
-  switcherButtonActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  switcherLabel: { fontSize: 13, color: colors.text },
-  switcherLabelActive: { color: '#fff', fontWeight: '600' },
-  row: { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
-  date: { fontWeight: '600' },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm + spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  rowBody: { flex: 1, gap: 2 },
+  rowSummary: { fontFamily: fontFamily.bold, fontSize: fontSize.md, color: colors.text },
+  rowDate: { color: colors.mutedDark, fontFamily: fontFamily.regular, fontSize: fontSize.sm },
+  rowMeta: { alignItems: 'flex-end', gap: spacing.xs },
+  rowWhen: { color: colors.muted, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
+  rowProfile: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  rowName: { color: colors.text, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
   empty: { textAlign: 'center', color: colors.muted, marginTop: 24 },
 });

@@ -1,14 +1,15 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Button, StyleSheet, Text } from 'react-native';
+import { Alert, StyleSheet, Text } from 'react-native';
 
 import { FormField } from '@/components/FormField';
+import { PillButton } from '@/components/PillButton';
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { parseVolume } from '@/features/feeding/FormulaForm';
 import { useDeleteFeed, useFeeds, useUpdateFeed } from '@/features/feeding/hooks';
 import type { Feed } from '@/features/feeding/types';
-import { colors } from '@/lib/theme';
+import { colors, fontSize } from '@/lib/theme';
 
 const DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
@@ -185,10 +186,10 @@ export default function EditFeed() {
       <FormField label="Note" value={note} onChangeText={setNote} />
       {updateFeed.isError ? <Text style={styles.error}>{updateFeed.error.message}</Text> : null}
       {deleteFeed.isError ? <Text style={styles.error}>{deleteFeed.error.message}</Text> : null}
-      <Button title="Save" disabled={!valid || updateFeed.isPending} onPress={save} />
-      <Button
+      <PillButton title="Save" disabled={!valid || updateFeed.isPending} onPress={save} />
+      <PillButton
         title="Delete"
-        color={colors.danger}
+        variant="danger"
         disabled={!feed || deleteFeed.isPending}
         onPress={confirmDelete}
       />
@@ -197,6 +198,6 @@ export default function EditFeed() {
 }
 
 const styles = StyleSheet.create({
-  error: { color: colors.danger },
-  info: { color: colors.muted },
+  error: { color: colors.danger, fontSize: fontSize.sm },
+  info: { color: colors.mutedDark },
 });

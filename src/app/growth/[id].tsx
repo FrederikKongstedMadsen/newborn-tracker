@@ -1,8 +1,9 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Button, StyleSheet, Text } from 'react-native';
+import { Alert, StyleSheet, Text } from 'react-native';
 
 import { FormField } from '@/components/FormField';
+import { PillButton } from '@/components/PillButton';
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import {
@@ -11,7 +12,7 @@ import {
   useUpdateMeasurement,
 } from '@/features/growth/hooks';
 import type { GrowthMeasurement } from '@/features/growth/types';
-import { colors } from '@/lib/theme';
+import { colors, fontSize } from '@/lib/theme';
 
 import { parseDecimal } from './new';
 
@@ -111,10 +112,10 @@ export default function EditMeasurement() {
       {deleteMeasurement.isError ? (
         <Text style={styles.error}>{deleteMeasurement.error.message}</Text>
       ) : null}
-      <Button title="Save" disabled={!valid || updateMeasurement.isPending} onPress={save} />
-      <Button
+      <PillButton title="Save" disabled={!valid || updateMeasurement.isPending} onPress={save} />
+      <PillButton
         title="Delete"
-        color={colors.danger}
+        variant="danger"
         disabled={!measurement || deleteMeasurement.isPending}
         onPress={confirmDelete}
       />
@@ -123,5 +124,5 @@ export default function EditMeasurement() {
 }
 
 const styles = StyleSheet.create({
-  error: { color: colors.danger },
+  error: { color: colors.danger, fontSize: fontSize.sm },
 });

@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Polyline, Rect, Text as SvgText } from 'react-native-svg';
 
-import { colors } from '@/lib/theme';
+import { colors, fontFamily } from '@/lib/theme';
 
 import { makeScale } from './chartScale';
 import type { GrowthMeasurement } from './types';
@@ -11,23 +11,23 @@ import type { Indicator, Percentile } from './who/types';
 import { PERCENTILES } from './who/types';
 
 // Percentile bands read as a diverging/status encoding centered on the median:
-// p50 is "typical" (good/green), p15+p85 are the borderline band (warning/amber),
-// p3+p97 are the outer band (critical/red). Colors from the validated status
-// palette (dataviz skill) so they hold contrast and CVD separation.
+// p50 is "typical" (good), p15+p85 are the borderline band (warning), p3+p97
+// are the outer band (critical). Colors from the app's new palette so the
+// chart chrome reads as one system with the rest of the redesign.
 const PERCENTILE_COLORS: Record<Percentile, string> = {
-  p3: '#d03b3b',
-  p15: '#fab219',
-  p50: '#0ca30c',
-  p85: '#fab219',
-  p97: '#d03b3b',
+  p3: '#cf6257',
+  p15: '#c9922e',
+  p50: '#3a8a6f',
+  p85: '#c9922e',
+  p97: '#cf6257',
 };
 
-// Chart chrome tokens (light surface — the app has no dark-mode theming yet).
-const SURFACE = '#fcfcfb';
-const INK_PRIMARY = '#0b0b0b';
-const INK_MUTED = '#898781';
-const GRIDLINE = '#e1e0d9';
-const MEASUREMENT_COLOR = colors.primary; // categorical slot 1 (blue)
+// Chart chrome — aligned to the app's design tokens.
+const SURFACE = colors.card;
+const INK_PRIMARY = colors.text;
+const INK_MUTED = colors.muted;
+const GRIDLINE = colors.border;
+const MEASUREMENT_COLOR = '#3f76c2'; // measurement dots per new-palette spec
 
 const MARGIN = { top: 12, right: 36, bottom: 28, left: 40 };
 
@@ -90,6 +90,7 @@ export function GrowthChart({ indicator, sex, birthDate, measurements, width, he
             x={x(days)}
             y={height - 10}
             fontSize={10}
+            fontFamily={fontFamily.regular}
             fill={INK_MUTED}
             textAnchor="middle"
           >
@@ -113,13 +114,21 @@ export function GrowthChart({ indicator, sex, birthDate, measurements, width, he
             x={width - MARGIN.right + 4}
             y={y(visible[visible.length - 1][pc]) + 3}
             fontSize={9}
+            fontFamily={fontFamily.regular}
             fill={INK_MUTED}
           >
             {pc.slice(1)}
           </SvgText>
         ))}
         {[yMin, (yMin + yMax) / 2, yMax].map((v) => (
-          <SvgText key={v} x={4} y={y(v) + 3} fontSize={10} fill={INK_MUTED}>
+          <SvgText
+            key={v}
+            x={4}
+            y={y(v) + 3}
+            fontSize={10}
+            fontFamily={fontFamily.regular}
+            fill={INK_MUTED}
+          >
             {v.toFixed(1)}
           </SvgText>
         ))}
@@ -174,5 +183,5 @@ const styles = StyleSheet.create({
   legendSwatch: { width: 12, height: 3 },
   legendSwatchLine: { borderRadius: 1.5 },
   legendSwatchCircle: { width: 8, height: 8, borderRadius: 4 },
-  legendLabel: { fontSize: 11, color: INK_PRIMARY },
+  legendLabel: { fontSize: 11, fontFamily: fontFamily.regular, color: INK_PRIMARY },
 });

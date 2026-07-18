@@ -1,6 +1,10 @@
 import { useState } from 'react';
-import { ActivityIndicator, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
+import { FormField } from '@/components/FormField';
+import { PillButton } from '@/components/PillButton';
+import { Screen } from '@/components/Screen';
+import { colors, fontFamily, fontSize, spacing } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 
 export default function Login() {
@@ -18,31 +22,43 @@ export default function Login() {
   }
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        autoComplete="email"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      {isSubmitting ? <ActivityIndicator /> : <Button title="Log in" onPress={signIn} />}
-    </View>
+    <Screen>
+      <View style={styles.container}>
+        <Text style={styles.heading}>Welcome back</Text>
+        <FormField
+          label="Email"
+          placeholder="you@example.com"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          autoComplete="email"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <FormField
+          label="Password"
+          placeholder="Password"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {isSubmitting ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : (
+          <PillButton title="Log in" onPress={signIn} />
+        )}
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, gap: 12 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12 },
-  error: { color: 'red' },
+  container: { flex: 1, justifyContent: 'center', gap: spacing.md },
+  heading: {
+    fontSize: fontSize.xl,
+    fontFamily: fontFamily.bold,
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
+  error: { color: colors.danger, fontSize: fontSize.sm },
 });

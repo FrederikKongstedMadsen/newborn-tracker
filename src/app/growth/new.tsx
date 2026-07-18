@@ -1,13 +1,14 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Button, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
 import { FormField } from '@/components/FormField';
+import { PillButton } from '@/components/PillButton';
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { useAddMeasurement } from '@/features/growth/hooks';
 import { todayIso } from '@/lib/dates';
-import { colors } from '@/lib/theme';
+import { colors, fontSize } from '@/lib/theme';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -75,11 +76,16 @@ export default function NewMeasurement() {
       {addMeasurement.isError ? (
         <Text style={styles.error}>{addMeasurement.error.message}</Text>
       ) : null}
-      <Button title="Save" disabled={!valid || addMeasurement.isPending} onPress={save} />
+      <PillButton
+        title="Save"
+        icon="add"
+        disabled={!valid || addMeasurement.isPending}
+        onPress={save}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  error: { color: colors.danger },
+  error: { color: colors.danger, fontSize: fontSize.sm },
 });

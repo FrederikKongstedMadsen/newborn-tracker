@@ -10,16 +10,42 @@ import { SegmentedControl } from '@/components/SegmentedControl';
 import { useBaby } from '@/features/baby/hooks';
 import { BreastFeedCard } from '@/features/feeding/BreastFeedCard';
 import { FeedingChart } from '@/features/feeding/FeedingChart';
-import { feedSummary } from '@/features/feeding/feedMath';
+import { feedSummary, totalElapsedSeconds } from '@/features/feeding/feedMath';
 import { FormulaForm } from '@/features/feeding/FormulaForm';
 import { useActiveFeed, useFeeds } from '@/features/feeding/hooks';
 import type { Feed } from '@/features/feeding/types';
 import { useNowTick } from '@/features/feeding/useNowTick';
 import { useProfileMap } from '@/features/profiles/hooks';
 import { relativeTime, timeHHmm } from '@/lib/dates';
+import { formatDuration } from '@/lib/duration';
 import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
 
 type Segment = 'Breast' | 'Formula';
+
+function BreastFeedBanner({
+  feed,
+  now,
+  onPress,
+}: {
+  feed: Feed;
+  now: number;
+  onPress: () => void;
+}) {
+  const seconds = totalElapsedSeconds(feed, now);
+  return (
+    <Card onPress={onPress}>
+      <View style={styles.bannerRow}>
+        <IconChip
+          icon={trackerColors.feeding.icon}
+          accent={trackerColors.feeding.accent}
+          tint={trackerColors.feeding.tint}
+          size={32}
+        />
+        <Text style={styles.bannerText}>Breast feed running · {formatDuration(seconds)}</Text>
+      </View>
+    </Card>
+  );
+}
 
 function rowDate(iso: string): string {
   const d = new Date(iso);
@@ -60,6 +86,7 @@ export default function FeedingScreen() {
   const { data: feeds } = useFeeds(baby?.id);
   const { width } = useWindowDimensions();
   const now = useNowTick(false);
+  const bannerNow = useNowTick(!!activeFeed);
   const [segment, setSegment] = useState<Segment>('Breast');
 
   return (
@@ -78,9 +105,18 @@ export default function FeedingScreen() {
             {segment === 'Breast' ? (
               <BreastFeedCard babyId={baby?.id} feed={activeFeed} />
             ) : (
-              <Card>
-                <FormulaForm babyId={baby?.id} />
-              </Card>
+              <>
+                {activeFeed ? (
+                  <BreastFeedBanner
+                    feed={activeFeed}
+                    now={bannerNow}
+                    onPress={() => setSegment('Breast')}
+                  />
+                ) : null}
+                <Card>
+                  <FormulaForm babyId={baby?.id} />
+                </Card>
+              </>
             )}
             <Card>
               <View style={styles.chartTitleRow}>
@@ -102,6 +138,8 @@ export default function FeedingScreen() {
 const styles = StyleSheet.create({
   list: { flex: 1 },
   header: { marginBottom: spacing.sm, gap: spacing.md },
+  bannerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  bannerText: { fontFamily: fontFamily.semibold, fontSize: fontSize.md, color: colors.text },
   chartTitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

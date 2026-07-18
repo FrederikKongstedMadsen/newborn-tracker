@@ -1,13 +1,24 @@
 import { useState } from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { FormField } from '@/components/FormField';
+import { PillButton } from '@/components/PillButton';
 import { Screen } from '@/components/Screen';
+import { SegmentedControl } from '@/components/SegmentedControl';
 import { useBaby, useSaveBaby } from '@/features/baby/hooks';
-import { colors, fontSize, spacing } from '@/lib/theme';
+import { colors, fontFamily, fontSize, spacing } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const SEX_OPTIONS = ['Boy', 'Girl'] as const;
+
+function sexToOption(sex: 'male' | 'female'): 'Boy' | 'Girl' {
+  return sex === 'male' ? 'Boy' : 'Girl';
+}
+
+function optionToSex(option: string): 'male' | 'female' {
+  return option === 'Boy' ? 'male' : 'female';
+}
 
 export default function Profile() {
   const { data: baby } = useBaby();
@@ -34,8 +45,11 @@ export default function Profile() {
       <Text style={styles.heading}>Profile</Text>
       <FormField label="Name" value={name} onChangeText={setName} />
       <View style={styles.sexRow}>
-        <Button title={sex === 'male' ? '● Boy' : 'Boy'} onPress={() => setSex('male')} />
-        <Button title={sex === 'female' ? '● Girl' : 'Girl'} onPress={() => setSex('female')} />
+        <SegmentedControl
+          options={[...SEX_OPTIONS]}
+          selected={sexToOption(sex)}
+          onSelect={(option) => setSex(optionToSex(option))}
+        />
       </View>
       <FormField
         label="Birth date (YYYY-MM-DD)"
@@ -46,7 +60,7 @@ export default function Profile() {
       />
       {saveBaby.isError ? <Text style={styles.error}>{saveBaby.error.message}</Text> : null}
       {saveBaby.isSuccess ? <Text style={styles.saved}>Saved</Text> : null}
-      <Button
+      <PillButton
         title="Save"
         disabled={!valid || saveBaby.isPending}
         onPress={() =>
@@ -54,16 +68,16 @@ export default function Profile() {
         }
       />
       <View style={styles.signOut}>
-        <Button title="Sign out" color={colors.danger} onPress={() => supabase.auth.signOut()} />
+        <PillButton title="Sign out" variant="danger" onPress={() => supabase.auth.signOut()} />
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  heading: { fontSize: fontSize.xl, fontWeight: '700', color: colors.text },
-  sexRow: { flexDirection: 'row', gap: spacing.sm, justifyContent: 'center' },
-  error: { color: colors.danger },
-  saved: { color: colors.primary },
+  heading: { fontSize: fontSize.xl, fontFamily: fontFamily.bold, color: colors.text },
+  sexRow: { flexDirection: 'row' },
+  error: { color: colors.danger, fontSize: fontSize.sm },
+  saved: { color: colors.primary, fontSize: fontSize.sm },
   signOut: { marginTop: spacing.xl },
 });
