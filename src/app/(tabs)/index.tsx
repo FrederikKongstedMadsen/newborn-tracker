@@ -1,11 +1,39 @@
-import { Text } from 'react-native';
+import { router } from 'expo-router';
+import { StyleSheet, Text } from 'react-native';
 
+import { Card } from '@/components/Card';
 import { Screen } from '@/components/Screen';
+import { useBaby } from '@/features/baby/hooks';
+import { GrowthStatusCard } from '@/features/home/GrowthStatusCard';
+import { ageInDays } from '@/features/growth/who/curveMath';
+import { colors, fontSize } from '@/lib/theme';
 
 export default function Home() {
+  const { data: baby, isLoading } = useBaby();
+
+  if (isLoading) return <Screen topInset>{null}</Screen>;
+
   return (
     <Screen topInset>
-      <Text>Home</Text>
+      {baby ? (
+        <>
+          <Text style={styles.name}>{baby.name}</Text>
+          <Text style={styles.age}>
+            {ageInDays(baby.birth_date, new Date().toISOString().slice(0, 10))} days old
+          </Text>
+          <GrowthStatusCard babyId={baby.id} />
+        </>
+      ) : (
+        <Card onPress={() => router.push('/profile')}>
+          <Text style={styles.name}>Welcome</Text>
+          <Text style={styles.age}>Create the baby profile to get started</Text>
+        </Card>
+      )}
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  name: { fontSize: fontSize.xl, fontWeight: '700', color: colors.text },
+  age: { fontSize: fontSize.md, color: colors.muted },
+});
