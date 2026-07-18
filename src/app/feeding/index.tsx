@@ -1,9 +1,18 @@
 import { router } from 'expo-router';
-import { Button, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Button,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { ActiveFeedCard } from '@/features/feeding/ActiveFeedCard';
+import { FeedingChart } from '@/features/feeding/FeedingChart';
 import { feedSummary } from '@/features/feeding/feedMath';
 import { useActiveFeed, useFeeds, useStartBreastFeed } from '@/features/feeding/hooks';
 import type { Feed } from '@/features/feeding/types';
@@ -23,6 +32,7 @@ export default function FeedingScreen() {
   const { data: activeFeed } = useActiveFeed(baby?.id);
   const { data: feeds } = useFeeds(baby?.id);
   const startBreastFeed = useStartBreastFeed();
+  const { width } = useWindowDimensions();
 
   return (
     <Screen scroll={false}>
@@ -55,6 +65,7 @@ export default function FeedingScreen() {
                 </View>
               </View>
             )}
+            <FeedingChart feeds={feeds ?? []} width={width - 32} />
           </View>
         }
         renderItem={({ item }) => (

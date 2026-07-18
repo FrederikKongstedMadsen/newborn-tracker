@@ -8,7 +8,8 @@ import { colors, fontSize, spacing } from '@/lib/theme';
 
 const TRACKERS = [
   { title: 'Growth', icon: 'trending-up' as const, href: '/growth' as const },
-  // future: feeding, sleep, diapers, sick, notes
+  { title: 'Feeding', icon: 'water' as const, href: '/feeding' as const },
+  // future: sleep, diapers, sick, notes
 ];
 
 export default function Track() {
