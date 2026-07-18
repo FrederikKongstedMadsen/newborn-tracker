@@ -18,10 +18,18 @@ describe('vendored WHO curves', () => {
   });
 
   it('percentiles are strictly increasing at every point', () => {
-    const curve = getCurve('weight-for-age', 'male');
-    for (const point of curve.points) {
-      for (let i = 1; i < PERCENTILES.length; i++) {
-        expect(point[PERCENTILES[i]]).toBeGreaterThan(point[PERCENTILES[i - 1]]);
+    for (const indicator of [
+      'weight-for-age',
+      'length-for-age',
+      'head-circumference-for-age',
+    ] as const) {
+      for (const sex of ['male', 'female'] as const) {
+        const curve = getCurve(indicator, sex);
+        for (const point of curve.points) {
+          for (let i = 1; i < PERCENTILES.length; i++) {
+            expect(point[PERCENTILES[i]]).toBeGreaterThan(point[PERCENTILES[i - 1]]);
+          }
+        }
       }
     }
   });
