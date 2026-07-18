@@ -42,7 +42,7 @@ the live timer purely from these columns.
 - **History list** (FlatList, newest first): time, type icon, summary
   ("L 12m · R 8m" or "80 ml"), tap → `/feeding/[id]`.
 - **7-day chart** in the list header (below active card): bar per day, feed count
-  + total minutes label. Built with react-native-svg + existing `makeScale`.
+  - total minutes label. Built with react-native-svg + existing `makeScale`.
 
 ### `/feeding/formula`
 
@@ -68,6 +68,7 @@ Editing satisfies the "editable field for each breast" requirement.
 ## Pure logic (unit-tested)
 
 `src/features/feeding/feedMath.ts`:
+
 - `sideElapsedSeconds(feed, side, nowMs)` — banked + running share
 - `totalElapsedSeconds(feed, nowMs)`
 - `formatDuration(seconds)` — "14m", "1h 02m", "45s"

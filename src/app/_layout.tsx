@@ -23,6 +23,9 @@ function AuthGate() {
         <Stack.Screen name="growth/index" options={{ title: 'Growth' }} />
         <Stack.Screen name="growth/new" options={{ title: 'Add measurement' }} />
         <Stack.Screen name="growth/[id]" options={{ title: 'Edit measurement' }} />
+        <Stack.Screen name="feeding/index" options={{ title: 'Feeding' }} />
+        <Stack.Screen name="feeding/formula" options={{ title: 'Log formula' }} />
+        <Stack.Screen name="feeding/[id]" options={{ title: 'Edit feed' }} />
       </Stack.Protected>
       <Stack.Protected guard={session === null}>
         <Stack.Screen name="login" options={{ title: 'Log in' }} />
