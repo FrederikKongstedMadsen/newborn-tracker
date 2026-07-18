@@ -27,7 +27,7 @@ export default function BabyProfile() {
   const [birthDate, setBirthDate] = useState('');
   // Render-time sync: prefill form when the baby row first arrives (React docs:
   // "adjusting state when a prop changes").
-  const [prevBaby, setPrevBaby] = useState(baby);
+  const [prevBaby, setPrevBaby] = useState<typeof baby>(undefined);
   if (baby !== prevBaby) {
     setPrevBaby(baby);
     if (baby) {

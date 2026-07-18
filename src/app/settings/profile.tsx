@@ -25,7 +25,7 @@ export default function MyProfile() {
 
   // Render-time sync: prefill form when the profile row first arrives (React docs:
   // "adjusting state when a prop changes").
-  const [prevProfile, setPrevProfile] = useState(myProfile);
+  const [prevProfile, setPrevProfile] = useState<typeof myProfile>(undefined);
   if (myProfile !== prevProfile) {
     setPrevProfile(myProfile);
     if (myProfile) {
