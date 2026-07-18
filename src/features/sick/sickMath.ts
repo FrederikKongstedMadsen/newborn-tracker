@@ -1,7 +1,11 @@
 import type { MedicineDose } from './types';
 
 /** Temperature tiers hardcoded per spec out-of-scope note (no age-based thresholds). */
-export function tempInfo(celsius: number): { label: 'Normal' | 'Raised' | 'Fever'; color: string } {
+export function tempInfo(celsius: number): {
+  label: 'Low' | 'Normal' | 'Raised' | 'Fever';
+  color: string;
+} {
+  if (celsius < 35.8) return { label: 'Low', color: '#3f76c2' };
   if (celsius < 37.5) return { label: 'Normal', color: '#3a8a6f' };
   if (celsius < 38.0) return { label: 'Raised', color: '#c9922e' };
   return { label: 'Fever', color: '#cf6257' };

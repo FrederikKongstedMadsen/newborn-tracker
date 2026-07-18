@@ -17,6 +17,12 @@ function dose(overrides: Partial<MedicineDose> = {}): MedicineDose {
 }
 
 describe('tempInfo', () => {
+  it('flags low temperatures below 35.8', () => {
+    expect(tempInfo(35.7)).toEqual({ label: 'Low', color: '#3f76c2' });
+    expect(tempInfo(35.8).label).toBe('Normal');
+    expect(tempInfo(34.0).label).toBe('Low');
+  });
+
   it('is Normal just below the raised threshold', () => {
     expect(tempInfo(37.4)).toEqual({ label: 'Normal', color: '#3a8a6f' });
   });
