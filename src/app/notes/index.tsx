@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -14,7 +15,7 @@ import { useAddNote, useNotes } from '@/features/notes/hooks';
 import type { Note } from '@/features/notes/types';
 import { useProfileMap } from '@/features/profiles/hooks';
 import { relativeTime, timeHHmm } from '@/lib/dates';
-import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
+import { colors, fontFamily, fontSize, radius, spacing, trackerColors } from '@/lib/theme';
 
 const DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
@@ -85,7 +86,13 @@ export default function NotesScreen() {
   }
 
   return (
-    <Screen scroll={false}>
+    <Screen scroll={false} topInset>
+      <View style={styles.titleRow}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={22} color={colors.text} />
+        </Pressable>
+        <Text style={styles.heading}>Notes</Text>
+      </View>
       <FlatList
         style={styles.list}
         data={notes ?? []}
@@ -127,6 +134,26 @@ export default function NotesScreen() {
 
 const styles = StyleSheet.create({
   list: { flex: 1 },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#221f1b',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  heading: { fontSize: fontSize.xl, fontFamily: fontFamily.bold, color: colors.text },
   header: { marginBottom: spacing.sm, gap: spacing.md },
   composerInput: { minHeight: 72, textAlignVertical: 'top' },
   error: { color: colors.danger, fontSize: fontSize.sm },

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
@@ -15,7 +16,7 @@ import type { GrowthMeasurement } from '@/features/growth/types';
 import type { Indicator } from '@/features/growth/who/types';
 import { useProfileMap } from '@/features/profiles/hooks';
 import { relativeTime } from '@/lib/dates';
-import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
+import { colors, fontFamily, fontSize, radius, spacing, trackerColors } from '@/lib/theme';
 
 const INDICATORS: { value: Indicator; label: string }[] = [
   { value: 'weight-for-age', label: 'Weight' },
@@ -65,7 +66,13 @@ export default function GrowthScreen() {
   const now = useNowTick(false);
 
   return (
-    <Screen scroll={false}>
+    <Screen scroll={false} topInset>
+      <View style={styles.titleRow}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={22} color={colors.text} />
+        </Pressable>
+        <Text style={styles.heading}>Growth</Text>
+      </View>
       <FlatList
         style={styles.list}
         data={[...(measurements ?? [])].reverse()}
@@ -106,6 +113,26 @@ export default function GrowthScreen() {
 
 const styles = StyleSheet.create({
   list: { flex: 1 },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#221f1b',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  heading: { fontSize: fontSize.xl, fontFamily: fontFamily.bold, color: colors.text },
   header: { marginBottom: spacing.sm, gap: spacing.md },
   sectionLabel: {
     color: colors.muted,

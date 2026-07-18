@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   cell: {
-    flexBasis: '48%',
+    flexBasis: '40%',
     flexGrow: 1,
   },
 });

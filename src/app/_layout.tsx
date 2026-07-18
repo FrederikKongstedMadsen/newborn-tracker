@@ -37,24 +37,25 @@ function AuthGate() {
         headerTitleStyle: { fontFamily: fontFamily.bold, color: colors.text },
         headerTintColor: colors.primary,
         headerShadowVisible: false,
+        headerBackButtonDisplayMode: 'minimal',
         contentStyle: { backgroundColor: colors.background },
       }}
     >
       <Stack.Protected guard={session !== null}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="growth/index" options={{ title: 'Growth' }} />
+        <Stack.Screen name="growth/index" options={{ headerShown: false }} />
         <Stack.Screen name="growth/new" options={{ title: 'Add measurement' }} />
         <Stack.Screen name="growth/[id]" options={{ title: 'Edit measurement' }} />
-        <Stack.Screen name="feeding/index" options={{ title: 'Feeding' }} />
+        <Stack.Screen name="feeding/index" options={{ headerShown: false }} />
         <Stack.Screen name="feeding/[id]" options={{ title: 'Edit feed' }} />
-        <Stack.Screen name="sleep/index" options={{ title: 'Sleep' }} />
+        <Stack.Screen name="sleep/index" options={{ headerShown: false }} />
         <Stack.Screen name="sleep/[id]" options={{ title: 'Edit sleep' }} />
-        <Stack.Screen name="diaper/index" options={{ title: 'Diaper' }} />
+        <Stack.Screen name="diaper/index" options={{ headerShown: false }} />
         <Stack.Screen name="diaper/[id]" options={{ title: 'Edit diaper' }} />
-        <Stack.Screen name="sick/index" options={{ title: 'Sick' }} />
+        <Stack.Screen name="sick/index" options={{ headerShown: false }} />
         <Stack.Screen name="sick/temperature/[id]" options={{ title: 'Edit temperature' }} />
         <Stack.Screen name="sick/medicine/[id]" options={{ title: 'Edit dose' }} />
-        <Stack.Screen name="notes/index" options={{ title: 'Notes' }} />
+        <Stack.Screen name="notes/index" options={{ headerShown: false }} />
         <Stack.Screen name="notes/[id]" options={{ title: 'Edit note' }} />
       </Stack.Protected>
       <Stack.Protected guard={session === null}>

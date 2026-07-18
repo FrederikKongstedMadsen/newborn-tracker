@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -12,7 +13,7 @@ import type { Diaper, DiaperType } from '@/features/diaper/types';
 import { useNowTick } from '@/features/feeding/useNowTick';
 import { useProfileMap } from '@/features/profiles/hooks';
 import { relativeTime, timeHHmm } from '@/lib/dates';
-import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
+import { colors, fontFamily, fontSize, radius, spacing, trackerColors } from '@/lib/theme';
 
 const TYPES: DiaperType[] = ['pee', 'poop', 'both', 'nothing'];
 
@@ -70,7 +71,13 @@ export default function DiaperScreen() {
   }
 
   return (
-    <Screen scroll={false}>
+    <Screen scroll={false} topInset>
+      <View style={styles.titleRow}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={22} color={colors.text} />
+        </Pressable>
+        <Text style={styles.heading}>Diaper</Text>
+      </View>
       <FlatList
         style={styles.list}
         data={diapers ?? []}
@@ -106,6 +113,26 @@ export default function DiaperScreen() {
 
 const styles = StyleSheet.create({
   list: { flex: 1 },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#221f1b',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  heading: { fontSize: fontSize.xl, fontFamily: fontFamily.bold, color: colors.text },
   header: { marginBottom: spacing.sm, gap: spacing.md },
   quickLogGrid: {
     flexDirection: 'row',
