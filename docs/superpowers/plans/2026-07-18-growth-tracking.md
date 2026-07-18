@@ -22,11 +22,13 @@
 ### Task 1: Migration + row types
 
 **Files:**
+
 - Create: `supabase/migrations/0001_babies_growth.sql`
 - Create: `src/features/baby/types.ts`
 - Create: `src/features/growth/types.ts`
 
 **Interfaces:**
+
 - Produces: DB tables `babies`, `growth_measurements`; TS types `Baby`, `NewBaby`, `GrowthMeasurement`, `NewGrowthMeasurement`.
 
 - [ ] **Step 1: Write migration**
@@ -128,12 +130,14 @@ git commit -m "feat: add babies and growth_measurements schema + row types"
 ### Task 2: Test infra + age/interpolation utils (TDD)
 
 **Files:**
+
 - Create: `src/features/growth/who/types.ts`
 - Create: `src/features/growth/who/curveMath.ts`
 - Test: `src/features/growth/who/curveMath.test.ts`
 - Modify: `package.json` (jest config + test script)
 
 **Interfaces:**
+
 - Produces: `ageInDays(birthDate: string, at: string): number`; `curveValueAt(points: CurvePoint[], percentile: Percentile, ageDays: number): number | null`; types `Percentile`, `CurvePoint`, `WhoCurve`, `Indicator`.
 
 - [ ] **Step 1: Install jest**
@@ -281,11 +285,13 @@ git commit -m "feat: add jest infra and WHO curve math utilities"
 ### Task 3: Vendor WHO percentile data
 
 **Files:**
+
 - Create: `src/features/growth/who/data/weight-for-age-male.json` (+ female, and the four length/head files — six total)
 - Create: `src/features/growth/who/curves.ts`
 - Test: `src/features/growth/who/curves.test.ts`
 
 **Interfaces:**
+
 - Consumes: `WhoCurve`, `Indicator` from `./types`.
 - Produces: `getCurve(indicator: Indicator, sex: 'male' | 'female'): WhoCurve`.
 
@@ -367,10 +373,7 @@ describe('vendored WHO curves', () => {
   it('matches known WHO medians (±0.2)', () => {
     // WHO: boys weight-for-age P50 at birth ≈ 3.3 kg, at 1 year ≈ 9.6 kg
     expect(curveValueAt(getCurve('weight-for-age', 'male').points, 'p50', 0)).toBeCloseTo(3.3, 1);
-    expect(curveValueAt(getCurve('weight-for-age', 'male').points, 'p50', 365)).toBeCloseTo(
-      9.6,
-      1,
-    );
+    expect(curveValueAt(getCurve('weight-for-age', 'male').points, 'p50', 365)).toBeCloseTo(9.6, 1);
     // WHO: girls length-for-age P50 at birth ≈ 49.1 cm
     expect(curveValueAt(getCurve('length-for-age', 'female').points, 'p50', 0)).toBeCloseTo(
       49.1,
@@ -395,10 +398,12 @@ git commit -m "feat: vendor WHO growth standard percentile data"
 ### Task 4: Baby + measurement hooks
 
 **Files:**
+
 - Create: `src/features/baby/hooks.ts`
 - Create: `src/features/growth/hooks.ts`
 
 **Interfaces:**
+
 - Consumes: `supabase` (`@/lib/supabase`), types from Tasks 1.
 - Produces: `useBaby(): UseQueryResult<Baby | null>`; `useSaveBaby()` (upsert mutation); `useGrowthMeasurements(babyId: string | undefined)`; `useAddMeasurement()`, `useUpdateMeasurement()`, `useDeleteMeasurement()`.
 
@@ -522,6 +527,7 @@ git commit -m "feat: add baby and growth measurement data hooks"
 ### Task 5: Screens — baby profile, home hub, measurement list/add/edit
 
 **Files:**
+
 - Create: `src/app/baby.tsx`
 - Create: `src/app/growth/index.tsx`
 - Create: `src/app/growth/new.tsx`
@@ -531,6 +537,7 @@ git commit -m "feat: add baby and growth measurement data hooks"
 - Modify: `src/app/_layout.tsx` (register new screens)
 
 **Interfaces:**
+
 - Consumes: hooks from Task 4.
 - Produces: navigable screens; `FormField` (labelled TextInput) reused by later features.
 
@@ -603,14 +610,8 @@ export default function BabyProfile() {
     <View style={styles.container}>
       <FormField label="Name" value={name} onChangeText={setName} />
       <View style={styles.sexRow}>
-        <Button
-          title={sex === 'male' ? '● Boy' : 'Boy'}
-          onPress={() => setSex('male')}
-        />
-        <Button
-          title={sex === 'female' ? '● Girl' : 'Girl'}
-          onPress={() => setSex('female')}
-        />
+        <Button title={sex === 'male' ? '● Boy' : 'Boy'} onPress={() => setSex('male')} />
+        <Button title={sex === 'female' ? '● Girl' : 'Girl'} onPress={() => setSex('female')} />
       </View>
       <FormField
         label="Birth date (YYYY-MM-DD)"
@@ -654,9 +655,7 @@ export default function Home() {
       {baby ? (
         <>
           <Text style={styles.title}>{baby.name}</Text>
-          <Text>
-            {ageInDays(baby.birth_date, new Date().toISOString().slice(0, 10))} days old
-          </Text>
+          <Text>{ageInDays(baby.birth_date, new Date().toISOString().slice(0, 10))} days old</Text>
           <Link href="/growth" asChild>
             <Button title="Growth" />
           </Link>
@@ -852,12 +851,14 @@ git commit -m "feat: add baby profile and growth measurement screens"
 ### Task 6: WHO percentile chart
 
 **Files:**
+
 - Create: `src/features/growth/GrowthChart.tsx`
 - Test: `src/features/growth/chartScale.test.ts`
 - Create: `src/features/growth/chartScale.ts`
 - Modify: `src/app/growth/index.tsx` (replace placeholder with chart + indicator switcher)
 
 **Interfaces:**
+
 - Consumes: `getCurve`, `curveValueAt`, `ageInDays`, `WhoCurve`, `Indicator`, `PERCENTILES`; measurements + baby from hooks.
 - Produces: `<GrowthChart indicator sex birthDate measurements width height />`; `makeScale(domain: [number, number], range: [number, number]): (v: number) => number`.
 
@@ -956,7 +957,10 @@ export function GrowthChart({ indicator, sex, birthDate, measurements, width, he
 
   const maxAge = Math.max(90, ...dataPoints.map((p) => p.ageDays)) * 1.1;
   const visible = curve.points.filter((p) => p.ageDays <= maxAge);
-  const yValues = [...visible.flatMap((p) => PERCENTILES.map((pc) => p[pc])), ...dataPoints.map((p) => p.value)];
+  const yValues = [
+    ...visible.flatMap((p) => PERCENTILES.map((pc) => p[pc])),
+    ...dataPoints.map((p) => p.value),
+  ];
   const yMin = Math.min(...yValues) * 0.95;
   const yMax = Math.max(...yValues) * 1.05;
 
@@ -1037,16 +1041,18 @@ In `src/app/growth/index.tsx`: add indicator switcher (three buttons: Weight / H
 const [indicator, setIndicator] = useState<Indicator>('weight-for-age');
 const { width } = useWindowDimensions();
 // inside render, above FlatList:
-{baby ? (
-  <GrowthChart
-    indicator={indicator}
-    sex={baby.sex}
-    birthDate={baby.birth_date}
-    measurements={measurements ?? []}
-    width={width - 32}
-    height={260}
-  />
-) : null}
+{
+  baby ? (
+    <GrowthChart
+      indicator={indicator}
+      sex={baby.sex}
+      birthDate={baby.birth_date}
+      measurements={measurements ?? []}
+      width={width - 32}
+      height={260}
+    />
+  ) : null;
+}
 ```
 
 with imports `useState`, `useWindowDimensions`, `GrowthChart`, `Indicator`, and a button row setting `indicator`.
