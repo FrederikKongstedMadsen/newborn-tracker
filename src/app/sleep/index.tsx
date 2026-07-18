@@ -1,30 +1,59 @@
 import { router } from 'expo-router';
-import {
-  Button,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
+import { Avatar } from '@/components/Avatar';
+import { Card } from '@/components/Card';
+import { ClockDigits } from '@/components/ClockDigits';
+import { IconChip } from '@/components/IconChip';
+import { PillButton } from '@/components/PillButton';
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
+import { useNowTick } from '@/features/feeding/useNowTick';
+import { useProfileMap } from '@/features/profiles/hooks';
 import { ActiveSleepCard } from '@/features/sleep/ActiveSleepCard';
 import { useActiveSleep, useSleeps, useStartSleep } from '@/features/sleep/hooks';
 import { SleepChart } from '@/features/sleep/SleepChart';
-import { sleepSummary } from '@/features/sleep/sleepMath';
+import { effectiveSleepSeconds, pauseSeconds } from '@/features/sleep/sleepMath';
 import type { SleepWithPauses } from '@/features/sleep/types';
-import { colors, spacing } from '@/lib/theme';
+import { relativeTime } from '@/lib/dates';
+import { formatDuration } from '@/lib/duration';
+import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
 
-function row(item: SleepWithPauses) {
-  const when = new Date(item.started_at).toLocaleString([], {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  });
+function timeOnly(iso: string): string {
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function SleepRow({ item, now }: { item: SleepWithPauses; now: number }) {
+  const { data: profileMap } = useProfileMap();
+  const profile = profileMap?.get(item.created_by);
   const nowMs = Date.parse(item.ended_at!);
-  return `${when} · ${sleepSummary(item, item.sleep_pauses, nowMs)}`;
+  const duration = effectiveSleepSeconds(item, item.sleep_pauses, nowMs);
+  const paused = pauseSeconds(item.sleep_pauses, nowMs);
+
+  return (
+    <Pressable style={styles.row} onPress={() => router.push(`/sleep/${item.id}`)}>
+      <IconChip icon="moon" accent={trackerColors.sleep.accent} tint={trackerColors.sleep.tint} />
+      <View style={styles.rowBody}>
+        <Text style={styles.rowLine1}>
+          <Text style={styles.rowDuration}>{formatDuration(duration)}</Text>
+          <Text style={styles.rowMuted}> asleep</Text>
+          {paused > 0 ? (
+            <Text style={styles.rowMuted}> · {formatDuration(paused)} paused</Text>
+          ) : null}
+        </Text>
+        <Text style={styles.rowRange}>
+          {timeOnly(item.started_at)}–{timeOnly(item.ended_at!)}
+        </Text>
+      </View>
+      <View style={styles.rowMeta}>
+        <Text style={styles.rowWhen}>{relativeTime(item.ended_at ?? item.started_at, now)}</Text>
+        <View style={styles.rowProfile}>
+          <Avatar profile={profile} size={20} />
+          <Text style={styles.rowName}>{profile?.display_name}</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
 }
 
 export default function SleepScreen() {
@@ -33,6 +62,7 @@ export default function SleepScreen() {
   const { data: sleeps } = useSleeps(baby?.id);
   const startSleep = useStartSleep();
   const { width } = useWindowDimensions();
+  const now = useNowTick(false);
 
   return (
     <Screen scroll={false}>
@@ -45,20 +75,24 @@ export default function SleepScreen() {
             {activeSleep ? (
               <ActiveSleepCard sleep={activeSleep} />
             ) : (
-              <Button
-                title="Start sleep"
-                disabled={!baby || startSleep.isPending}
-                onPress={() => startSleep.mutate({ babyId: baby!.id })}
-              />
+              <Card>
+                <Text style={styles.eyebrow}>READY</Text>
+                <View style={styles.clockWrap}>
+                  <ClockDigits seconds={0} />
+                </View>
+                <PillButton
+                  title="Start sleep"
+                  icon="moon"
+                  disabled={!baby || startSleep.isPending}
+                  onPress={() => startSleep.mutate({ babyId: baby!.id })}
+                />
+              </Card>
             )}
             <SleepChart sleeps={sleeps ?? []} width={width - 32} />
+            <Text style={styles.sectionLabel}>RECENT SLEEPS</Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <Pressable style={styles.row} onPress={() => router.push(`/sleep/${item.id}`)}>
-            <Text>{row(item)}</Text>
-          </Pressable>
-        )}
+        renderItem={({ item }) => <SleepRow item={item} now={now} />}
         ListEmptyComponent={<Text style={styles.empty}>No sleeps yet</Text>}
       />
     </Screen>
@@ -67,7 +101,39 @@ export default function SleepScreen() {
 
 const styles = StyleSheet.create({
   list: { flex: 1 },
-  header: { marginBottom: spacing.md },
-  row: { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
+  header: { marginBottom: spacing.sm, gap: spacing.md },
+  eyebrow: {
+    textAlign: 'center',
+    color: colors.muted,
+    fontFamily: fontFamily.semibold,
+    fontSize: fontSize.sm,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  clockWrap: { alignItems: 'center' },
+  sectionLabel: {
+    color: colors.muted,
+    fontFamily: fontFamily.semibold,
+    fontSize: fontSize.sm,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm + spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  rowBody: { flex: 1, gap: 2 },
+  rowLine1: {},
+  rowDuration: { fontFamily: fontFamily.bold, fontSize: fontSize.md, color: colors.text },
+  rowMuted: { color: colors.mutedDark, fontFamily: fontFamily.regular, fontSize: fontSize.md },
+  rowRange: { color: colors.mutedDark, fontFamily: fontFamily.regular, fontSize: fontSize.sm },
+  rowMeta: { alignItems: 'flex-end', gap: spacing.xs },
+  rowWhen: { color: colors.muted, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
+  rowProfile: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  rowName: { color: colors.text, fontSize: fontSize.sm, fontFamily: fontFamily.regular },
   empty: { textAlign: 'center', color: colors.muted, marginTop: 24 },
 });

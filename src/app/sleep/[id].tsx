@@ -1,15 +1,44 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Button, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { FormField } from '@/components/FormField';
+import { PillButton } from '@/components/PillButton';
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { useDeletePause, useDeleteSleep, useSleeps, useUpdateSleep } from '@/features/sleep/hooks';
+import type { SleepPause, SleepWithPauses } from '@/features/sleep/types';
 import { formatDuration } from '@/lib/duration';
-import { colors, spacing } from '@/lib/theme';
+import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
 
 const DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+const PAUSE_COLOR = '#c9922e';
+
+interface Segment {
+  kind: 'sleep' | 'pause';
+  startedAt: string;
+  endedAt: string;
+}
+
+/** Derives alternating sleep/pause segments between the sleep's start and end,
+ * splitting the sleep span at each pause. Assumes ended sleep (both started_at
+ * and ended_at present) — segments aren't meaningful for a running sleep. */
+function deriveSegments(sleep: SleepWithPauses): Segment[] {
+  if (!sleep.ended_at) return [];
+  const pauses = [...sleep.sleep_pauses]
+    .filter((p): p is SleepPause & { ended_at: string } => p.ended_at !== null)
+    .sort((a, b) => Date.parse(a.started_at) - Date.parse(b.started_at));
+
+  const segments: Segment[] = [];
+  let cursor = sleep.started_at;
+  for (const pause of pauses) {
+    segments.push({ kind: 'sleep', startedAt: cursor, endedAt: pause.started_at });
+    segments.push({ kind: 'pause', startedAt: pause.started_at, endedAt: pause.ended_at });
+    cursor = pause.ended_at;
+  }
+  segments.push({ kind: 'sleep', startedAt: cursor, endedAt: sleep.ended_at });
+  return segments;
+}
 
 function toDatetimeLocal(iso: string): string {
   const d = new Date(iso);
@@ -22,10 +51,28 @@ function toDatetimeLocal(iso: string): string {
 }
 
 function timeOnly(iso: string): string {
-  const d = new Date(iso);
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  return `${hh}:${mm}`;
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function segmentSeconds(segment: Segment): number {
+  return Math.max(
+    0,
+    Math.floor((Date.parse(segment.endedAt) - Date.parse(segment.startedAt)) / 1000),
+  );
+}
+
+function SegmentRow({ segment }: { segment: Segment }) {
+  const accent = segment.kind === 'sleep' ? trackerColors.sleep.accent : PAUSE_COLOR;
+  return (
+    <View style={styles.segmentRow}>
+      <View style={[styles.dot, { backgroundColor: accent }]} />
+      <Text style={styles.segmentLabel}>{segment.kind === 'sleep' ? 'Sleep' : 'Pause'}</Text>
+      <Text style={styles.segmentRange}>
+        {timeOnly(segment.startedAt)}–{timeOnly(segment.endedAt)}
+      </Text>
+      <Text style={styles.segmentDuration}>{formatDuration(segmentSeconds(segment))}</Text>
+    </View>
+  );
 }
 
 export default function EditSleep() {
@@ -76,6 +123,8 @@ export default function EditSleep() {
     valid = startedValid && endedValid;
   }
 
+  const segments = sleep && !running ? deriveSegments(sleep) : [];
+
   function save() {
     if (!sleep) return;
     if (running) {
@@ -124,6 +173,13 @@ export default function EditSleep() {
 
   return (
     <Screen>
+      {sleep && segments.length > 0 ? (
+        <View style={styles.segments}>
+          {segments.map((segment, i) => (
+            <SegmentRow key={`${segment.kind}-${segment.startedAt}-${i}`} segment={segment} />
+          ))}
+        </View>
+      ) : null}
       {running ? (
         <Text style={styles.info}>Sleep is running — stop it before editing times</Text>
       ) : sleep ? (
@@ -143,10 +199,10 @@ export default function EditSleep() {
       <FormField label="Note" value={note} onChangeText={setNote} />
       {updateSleep.isError ? <Text style={styles.error}>{updateSleep.error.message}</Text> : null}
       {deleteSleep.isError ? <Text style={styles.error}>{deleteSleep.error.message}</Text> : null}
-      <Button title="Save" disabled={!valid || updateSleep.isPending} onPress={save} />
-      <Button
+      <PillButton title="Save" disabled={!valid || updateSleep.isPending} onPress={save} />
+      <PillButton
         title="Delete"
-        color={colors.danger}
+        variant="danger"
         disabled={!sleep || deleteSleep.isPending}
         onPress={confirmDelete}
       />
@@ -168,9 +224,9 @@ export default function EditSleep() {
                     )}`
                   : 'ongoing'}
               </Text>
-              <Button
+              <PillButton
                 title="Delete"
-                color={colors.danger}
+                variant="danger"
                 disabled={deletePause.isPending}
                 onPress={() => confirmDeletePause(pause.id)}
               />
@@ -187,9 +243,38 @@ export default function EditSleep() {
 
 const styles = StyleSheet.create({
   error: { color: colors.danger },
-  info: { color: colors.muted },
+  info: { color: colors.mutedDark },
+  segments: { gap: spacing.sm, marginBottom: spacing.sm },
+  segmentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  segmentLabel: {
+    flex: 1,
+    color: colors.text,
+    fontFamily: fontFamily.regular,
+    fontSize: fontSize.md,
+  },
+  segmentRange: {
+    color: colors.mutedDark,
+    fontFamily: fontFamily.regular,
+    fontSize: fontSize.sm,
+  },
+  segmentDuration: {
+    color: colors.text,
+    fontFamily: fontFamily.bold,
+    fontSize: fontSize.md,
+    marginLeft: spacing.sm,
+    minWidth: 56,
+    textAlign: 'right',
+  },
   pauses: { gap: spacing.xs },
-  pausesTitle: { fontWeight: '600', marginTop: spacing.sm },
+  pausesTitle: { fontFamily: fontFamily.semibold, marginTop: spacing.sm, color: colors.text },
   pauseRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
