@@ -20,6 +20,10 @@ function AuthGate() {
     <Stack>
       <Stack.Protected guard={session !== null}>
         <Stack.Screen name="index" options={{ title: 'Newborn Tracker' }} />
+        <Stack.Screen name="baby" options={{ title: 'Baby profile' }} />
+        <Stack.Screen name="growth/index" options={{ title: 'Growth' }} />
+        <Stack.Screen name="growth/new" options={{ title: 'Add measurement' }} />
+        <Stack.Screen name="growth/[id]" options={{ title: 'Edit measurement' }} />
       </Stack.Protected>
       <Stack.Protected guard={session === null}>
         <Stack.Screen name="login" options={{ title: 'Log in' }} />
