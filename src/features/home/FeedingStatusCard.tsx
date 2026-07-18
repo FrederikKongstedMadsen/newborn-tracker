@@ -1,13 +1,12 @@
 import { router } from 'expo-router';
-import { StyleSheet, Text } from 'react-native';
 
-import { Card } from '@/components/Card';
 import { feedSummary, totalElapsedSeconds } from '@/features/feeding/feedMath';
 import { useActiveFeed, useFeeds } from '@/features/feeding/hooks';
 import { useNowTick } from '@/features/feeding/useNowTick';
 import { relativeTime } from '@/lib/dates';
 import { formatDuration } from '@/lib/duration';
-import { colors, fontSize, spacing } from '@/lib/theme';
+
+import { StatusCard } from './StatusCard';
 
 export function FeedingStatusCard({ babyId }: { babyId: string }) {
   const { data: activeFeed } = useActiveFeed(babyId);
@@ -15,30 +14,23 @@ export function FeedingStatusCard({ babyId }: { babyId: string }) {
   const now = useNowTick(!!activeFeed);
   const latest = feeds?.find((f) => f.ended_at !== null);
 
+  let value = 'No feeds yet';
+  let meta = 'tap to start';
+
+  if (activeFeed) {
+    value = `${formatDuration(totalElapsedSeconds(activeFeed, now))} · ${activeFeed.active_side}`;
+    meta = 'running';
+  } else if (latest) {
+    value = feedSummary(latest);
+    meta = relativeTime(latest.ended_at ?? latest.started_at, now);
+  }
+
   return (
-    <Card onPress={() => router.push('/feeding')}>
-      <Text style={styles.title}>Feeding</Text>
-      {activeFeed ? (
-        <>
-          <Text style={styles.value}>
-            {formatDuration(totalElapsedSeconds(activeFeed, now))} · {activeFeed.active_side}
-          </Text>
-          <Text style={styles.meta}>running</Text>
-        </>
-      ) : latest ? (
-        <>
-          <Text style={styles.value}>{feedSummary(latest)}</Text>
-          <Text style={styles.meta}>{relativeTime(latest.ended_at ?? latest.started_at, now)}</Text>
-        </>
-      ) : (
-        <Text style={styles.meta}>No feeds yet — tap to start</Text>
-      )}
-    </Card>
+    <StatusCard
+      tracker="feeding"
+      value={value}
+      meta={meta}
+      onPress={() => router.push('/feeding')}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: fontSize.sm, color: colors.muted, textTransform: 'uppercase' },
-  value: { fontSize: fontSize.lg, fontWeight: '600', color: colors.text },
-  meta: { fontSize: fontSize.sm, color: colors.muted, marginTop: spacing.xs },
-});

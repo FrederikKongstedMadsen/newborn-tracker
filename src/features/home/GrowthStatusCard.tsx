@@ -1,18 +1,21 @@
 import { router } from 'expo-router';
-import { StyleSheet, Text } from 'react-native';
 
-import { Card } from '@/components/Card';
 import { useGrowthMeasurements } from '@/features/growth/hooks';
 import type { GrowthMeasurement } from '@/features/growth/types';
 import { relativeDays } from '@/lib/dates';
-import { colors, fontSize, spacing } from '@/lib/theme';
 
+import { StatusCard } from './StatusCard';
+
+// Percentile isn't shown here: computing "Nth percentile" requires inverting
+// the WHO percentile curves to find which band the measured value falls
+// between (curveValueAt only goes percentile -> value, not value ->
+// percentile), which isn't a trivially clean addition. Relative-time meta
+// keeps this card's data logic unchanged from before the redesign.
 function latestSummary(m: GrowthMeasurement): string {
-  const parts: string[] = [];
-  if (m.weight_g != null) parts.push(`${(m.weight_g / 1000).toFixed(2)} kg`);
-  if (m.height_cm != null) parts.push(`${m.height_cm} cm`);
-  if (m.head_circumference_cm != null) parts.push(`head ${m.head_circumference_cm} cm`);
-  return parts.join(' · ');
+  if (m.weight_g != null) return `${(m.weight_g / 1000).toFixed(2)} kg`;
+  if (m.height_cm != null) return `${m.height_cm} cm`;
+  if (m.head_circumference_cm != null) return `head ${m.head_circumference_cm} cm`;
+  return '—';
 }
 
 export function GrowthStatusCard({ babyId }: { babyId: string }) {
@@ -20,22 +23,11 @@ export function GrowthStatusCard({ babyId }: { babyId: string }) {
   const latest = measurements?.[measurements.length - 1];
 
   return (
-    <Card onPress={() => router.push('/growth')}>
-      <Text style={styles.title}>Growth</Text>
-      {latest ? (
-        <>
-          <Text style={styles.value}>{latestSummary(latest)}</Text>
-          <Text style={styles.meta}>{relativeDays(latest.measured_at)}</Text>
-        </>
-      ) : (
-        <Text style={styles.meta}>No measurements yet — tap to add</Text>
-      )}
-    </Card>
+    <StatusCard
+      tracker="growth"
+      value={latest ? latestSummary(latest) : '—'}
+      meta={latest ? relativeDays(latest.measured_at) : 'No measurements yet — tap to add'}
+      onPress={() => router.push('/growth')}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: fontSize.sm, color: colors.muted, textTransform: 'uppercase' },
-  value: { fontSize: fontSize.lg, fontWeight: '600', color: colors.text },
-  meta: { fontSize: fontSize.sm, color: colors.muted, marginTop: spacing.xs },
-});
