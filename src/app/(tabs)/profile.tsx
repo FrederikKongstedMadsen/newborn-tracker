@@ -42,7 +42,7 @@ export default function Profile() {
 
   return (
     <Screen topInset>
-      <Text style={styles.heading}>Profile</Text>
+      <Text style={styles.heading}>Baby profile</Text>
       <FormField label="Name" value={name} onChangeText={setName} />
       <View style={styles.sexRow}>
         <SegmentedControl
