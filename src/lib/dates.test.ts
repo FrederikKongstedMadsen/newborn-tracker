@@ -1,4 +1,4 @@
-import { relativeDays, relativeTime, timeHHmm, todayIso } from './dates';
+import { formatAge, relativeDays, relativeTime, timeHHmm, todayIso } from './dates';
 
 describe('todayIso', () => {
   it('returns a YYYY-MM-DD formatted string', () => {
@@ -58,5 +58,47 @@ describe('timeHHmm', () => {
   it('pads midnight hour and minute', () => {
     const iso = new Date(2026, 6, 18, 0, 0).toISOString();
     expect(timeHHmm(iso)).toBe('00:00');
+  });
+});
+
+describe('formatAge', () => {
+  it('formats 0 days', () => {
+    expect(formatAge(0)).toBe('0 days old');
+  });
+
+  it('formats 1 day singular', () => {
+    expect(formatAge(1)).toBe('1 day old');
+  });
+
+  it('formats days under 14 as days', () => {
+    expect(formatAge(13)).toBe('13 days old');
+  });
+
+  it('formats exactly 14 days as 2 weeks old with no remainder', () => {
+    expect(formatAge(14)).toBe('2 weeks old');
+  });
+
+  it('formats 20 days as 2 weeks 6 days old', () => {
+    expect(formatAge(20)).toBe('2 weeks 6 days old');
+  });
+
+  it('formats weeks with singular day remainder', () => {
+    expect(formatAge(15)).toBe('2 weeks 1 day old');
+  });
+
+  it('formats 60 days in weeks form', () => {
+    expect(formatAge(60)).toBe('8 weeks 4 days old');
+  });
+
+  it('formats exactly 61 days as 2 months old with no remainder', () => {
+    expect(formatAge(61)).toBe('2 months old');
+  });
+
+  it('formats 75 days as 2 months 2 weeks old', () => {
+    expect(formatAge(75)).toBe('2 months 2 weeks old');
+  });
+
+  it('formats months with singular week remainder', () => {
+    expect(formatAge(70)).toBe('2 months 1 week old');
   });
 });

@@ -50,6 +50,29 @@ export function timeHHmm(iso: string): string {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+function unit(n: number, singular: string): string {
+  return `${n} ${singular}${n === 1 ? '' : 's'}`;
+}
+
+/** Human-friendly age label, staged in granularity as the baby gets older:
+ * days for < 2 weeks, weeks+days for < ~2 months, months+weeks beyond that. */
+export function formatAge(ageDays: number): string {
+  if (ageDays < 14) {
+    return `${unit(ageDays, 'day')} old`;
+  }
+  if (ageDays < 61) {
+    const weeks = Math.floor(ageDays / 7);
+    const remDays = ageDays % 7;
+    const weeksPart = unit(weeks, 'week');
+    return remDays === 0 ? `${weeksPart} old` : `${weeksPart} ${unit(remDays, 'day')} old`;
+  }
+  const daysPerMonth = 30.4375;
+  const months = Math.floor(ageDays / daysPerMonth);
+  const remWeeks = Math.floor((ageDays - months * daysPerMonth) / 7);
+  const monthsPart = unit(months, 'month');
+  return remWeeks === 0 ? `${monthsPart} old` : `${monthsPart} ${unit(remWeeks, 'week')} old`;
+}
+
 /** Short "X ago" label for a timestamp relative to nowMs. */
 export function relativeTime(iso: string, nowMs: number): string {
   const diffMinutes = Math.floor((nowMs - Date.parse(iso)) / 60_000);

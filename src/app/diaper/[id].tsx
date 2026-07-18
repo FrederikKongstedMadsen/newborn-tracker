@@ -7,20 +7,23 @@ import { PillButton } from '@/components/PillButton';
 import { Screen } from '@/components/Screen';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { useBaby } from '@/features/baby/hooks';
+import { diaperMeta } from '@/features/diaper/diaperMeta';
 import { useDeleteDiaper, useDiapers, useUpdateDiaper } from '@/features/diaper/hooks';
 import type { DiaperType } from '@/features/diaper/types';
 import { colors } from '@/lib/theme';
 
 const DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
-const SEGMENT_OPTIONS = ['Pee', 'Poop', 'Both', 'Nothing'];
+const SEGMENT_TYPES: DiaperType[] = ['pee', 'poop', 'both', 'nothing'];
+const SEGMENT_OPTIONS = SEGMENT_TYPES.map((type) => diaperMeta[type].label);
 
 function toSegment(type: DiaperType): string {
-  return type.charAt(0).toUpperCase() + type.slice(1);
+  return diaperMeta[type].label;
 }
 
 function toType(segment: string): DiaperType {
-  return segment.toLowerCase() as DiaperType;
+  const index = SEGMENT_OPTIONS.indexOf(segment);
+  return SEGMENT_TYPES[index] ?? 'pee';
 }
 
 function toDatetimeLocal(iso: string): string {

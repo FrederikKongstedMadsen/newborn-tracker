@@ -3,7 +3,6 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/Card';
-import { IconChip } from '@/components/IconChip';
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { DiaperStatusCard } from '@/features/home/DiaperStatusCard';
@@ -13,8 +12,8 @@ import { NotesStatusCard } from '@/features/home/NotesStatusCard';
 import { SickStatusCard } from '@/features/home/SickStatusCard';
 import { SleepStatusCard } from '@/features/home/SleepStatusCard';
 import { ageInDays } from '@/features/growth/who/curveMath';
-import { todayIso } from '@/lib/dates';
-import { colors, fontFamily, fontSize, radius, spacing, trackerColors } from '@/lib/theme';
+import { formatAge, todayIso } from '@/lib/dates';
+import { colors, fontFamily, fontSize, radius, spacing } from '@/lib/theme';
 
 function greeting(hour: number): string {
   if (hour < 12) return 'Good morning';
@@ -32,15 +31,10 @@ export default function Home() {
       {baby ? (
         <>
           <View style={styles.header}>
-            <IconChip
-              icon="happy"
-              accent={trackerColors.sleep.accent}
-              tint={trackerColors.sleep.tint}
-            />
             <View style={styles.headerText}>
               <Text style={styles.greeting}>{greeting(new Date().getHours())}</Text>
               <Text style={styles.name}>{baby.name}</Text>
-              <Text style={styles.age}>{ageInDays(baby.birth_date, todayIso())} days old</Text>
+              <Text style={styles.age}>{formatAge(ageInDays(baby.birth_date, todayIso()))}</Text>
             </View>
             <Pressable
               style={({ pressed }) => [
@@ -86,7 +80,7 @@ export default function Home() {
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: spacing.md,
   },
   headerText: { flex: 1, gap: 2 },

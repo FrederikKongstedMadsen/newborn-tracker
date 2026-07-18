@@ -1,15 +1,12 @@
 import { router } from 'expo-router';
 
+import { diaperMeta } from '@/features/diaper/diaperMeta';
 import { todayCount } from '@/features/diaper/diaperMath';
 import { useDiapers } from '@/features/diaper/hooks';
 import { useNowTick } from '@/features/feeding/useNowTick';
 import { relativeTime, todayIso } from '@/lib/dates';
 
 import { StatusCard } from './StatusCard';
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
 
 export function DiaperStatusCard({ babyId }: { babyId: string }) {
   const { data: diapers } = useDiapers(babyId);
@@ -20,7 +17,7 @@ export function DiaperStatusCard({ babyId }: { babyId: string }) {
   let meta = 'tap to log';
 
   if (latest) {
-    value = capitalize(latest.type);
+    value = diaperMeta[latest.type].label;
     meta = `${relativeTime(latest.happened_at, now)} · ${todayCount(diapers ?? [], todayIso())} today`;
   }
 

@@ -5,21 +5,17 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/Avatar';
 import { Card } from '@/components/Card';
 import { IconChip } from '@/components/IconChip';
-import { PillButton } from '@/components/PillButton';
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
+import { diaperMeta } from '@/features/diaper/diaperMeta';
 import { useLogDiaper, useDiapers } from '@/features/diaper/hooks';
 import type { Diaper, DiaperType } from '@/features/diaper/types';
 import { useNowTick } from '@/features/feeding/useNowTick';
 import { useProfileMap } from '@/features/profiles/hooks';
 import { relativeTime, timeHHmm } from '@/lib/dates';
-import { colors, fontFamily, fontSize, radius, spacing, trackerColors } from '@/lib/theme';
+import { colors, fontFamily, fontSize, radius, spacing } from '@/lib/theme';
 
 const TYPES: DiaperType[] = ['pee', 'poop', 'both', 'nothing'];
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
 
 function rowDate(iso: string): string {
   const d = new Date(iso);
@@ -29,16 +25,13 @@ function rowDate(iso: string): string {
 function DiaperRow({ item, now }: { item: Diaper; now: number }) {
   const { data: profileMap } = useProfileMap();
   const profile = profileMap?.get(item.created_by);
+  const meta = diaperMeta[item.type];
 
   return (
     <Pressable style={styles.row} onPress={() => router.push(`/diaper/${item.id}`)}>
-      <IconChip
-        icon={trackerColors.diaper.icon}
-        accent={trackerColors.diaper.accent}
-        tint={trackerColors.diaper.tint}
-      />
+      <IconChip icon={meta.icon} accent={meta.color} tint={meta.bg} />
       <View style={styles.rowBody}>
-        <Text style={styles.rowType}>{capitalize(item.type)}</Text>
+        <Text style={styles.rowType}>{meta.label}</Text>
         <Text style={styles.rowDatetime}>
           {timeHHmm(item.happened_at)} · {rowDate(item.happened_at)}
         </Text>
@@ -86,16 +79,28 @@ export default function DiaperScreen() {
           <View style={styles.header}>
             <Card>
               <View style={styles.quickLogGrid}>
-                {TYPES.map((type) => (
-                  <View key={type} style={styles.quickLogCell}>
-                    <PillButton
-                      title={capitalize(type)}
-                      variant="neutral"
-                      disabled={!baby || logDiaper.isPending}
-                      onPress={() => log(type)}
-                    />
-                  </View>
-                ))}
+                {TYPES.map((type) => {
+                  const meta = diaperMeta[type];
+                  return (
+                    <View key={type} style={styles.quickLogCell}>
+                      <Pressable
+                        style={({ pressed }) => [
+                          styles.quickLogButton,
+                          { backgroundColor: meta.bg },
+                          pressed && styles.quickLogButtonPressed,
+                          (!baby || logDiaper.isPending) && styles.quickLogButtonDisabled,
+                        ]}
+                        disabled={!baby || logDiaper.isPending}
+                        onPress={() => log(type)}
+                      >
+                        <Ionicons name={meta.icon} size={22} color={meta.color} />
+                        <Text style={[styles.quickLogLabel, { color: meta.color }]}>
+                          {meta.label}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  );
+                })}
               </View>
               {logDiaper.isError ? (
                 <Text style={styles.error}>{logDiaper.error.message}</Text>
@@ -140,6 +145,18 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   quickLogCell: { flexBasis: '48%', flexGrow: 1 },
+  quickLogButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderRadius: radius.card,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
+  quickLogButtonPressed: { opacity: 0.7 },
+  quickLogButtonDisabled: { opacity: 0.5 },
+  quickLogLabel: { fontSize: fontSize.md, fontFamily: fontFamily.semibold },
   error: { color: colors.danger, marginTop: spacing.sm },
   sectionLabel: {
     color: colors.muted,
