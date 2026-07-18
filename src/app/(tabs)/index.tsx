@@ -6,6 +6,7 @@ import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { FeedingStatusCard } from '@/features/home/FeedingStatusCard';
 import { GrowthStatusCard } from '@/features/home/GrowthStatusCard';
+import { SleepStatusCard } from '@/features/home/SleepStatusCard';
 import { ageInDays } from '@/features/growth/who/curveMath';
 import { todayIso } from '@/lib/dates';
 import { colors, fontSize } from '@/lib/theme';
@@ -23,6 +24,7 @@ export default function Home() {
           <Text style={styles.age}>{ageInDays(baby.birth_date, todayIso())} days old</Text>
           <GrowthStatusCard babyId={baby.id} />
           <FeedingStatusCard babyId={baby.id} />
+          <SleepStatusCard babyId={baby.id} />
         </>
       ) : (
         <Card onPress={() => router.push('/profile')}>

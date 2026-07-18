@@ -1,10 +1,19 @@
 import { router } from 'expo-router';
-import { Button, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Button,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { ActiveSleepCard } from '@/features/sleep/ActiveSleepCard';
 import { useActiveSleep, useSleeps, useStartSleep } from '@/features/sleep/hooks';
+import { SleepChart } from '@/features/sleep/SleepChart';
 import { sleepSummary } from '@/features/sleep/sleepMath';
 import type { SleepWithPauses } from '@/features/sleep/types';
 import { colors, spacing } from '@/lib/theme';
@@ -23,6 +32,7 @@ export default function SleepScreen() {
   const { data: activeSleep } = useActiveSleep(baby?.id);
   const { data: sleeps } = useSleeps(baby?.id);
   const startSleep = useStartSleep();
+  const { width } = useWindowDimensions();
 
   return (
     <Screen scroll={false}>
@@ -41,6 +51,7 @@ export default function SleepScreen() {
                 onPress={() => startSleep.mutate({ babyId: baby!.id })}
               />
             )}
+            <SleepChart sleeps={sleeps ?? []} width={width - 32} />
           </View>
         }
         renderItem={({ item }) => (
