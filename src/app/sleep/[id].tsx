@@ -7,39 +7,13 @@ import { PillButton } from '@/components/PillButton';
 import { Screen } from '@/components/Screen';
 import { useBaby } from '@/features/baby/hooks';
 import { useDeletePause, useDeleteSleep, useSleeps, useUpdateSleep } from '@/features/sleep/hooks';
-import type { SleepPause, SleepWithPauses } from '@/features/sleep/types';
+import { deriveSegments, type SleepSegment } from '@/features/sleep/sleepMath';
 import { timeHHmm } from '@/lib/dates';
 import { formatDuration } from '@/lib/duration';
 import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
 
 const DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 const PAUSE_COLOR = '#c9922e';
-
-interface Segment {
-  kind: 'sleep' | 'pause';
-  startedAt: string;
-  endedAt: string;
-}
-
-/** Derives alternating sleep/pause segments between the sleep's start and end,
- * splitting the sleep span at each pause. Assumes ended sleep (both started_at
- * and ended_at present) — segments aren't meaningful for a running sleep. */
-function deriveSegments(sleep: SleepWithPauses): Segment[] {
-  if (!sleep.ended_at) return [];
-  const pauses = [...sleep.sleep_pauses]
-    .filter((p): p is SleepPause & { ended_at: string } => p.ended_at !== null)
-    .sort((a, b) => Date.parse(a.started_at) - Date.parse(b.started_at));
-
-  const segments: Segment[] = [];
-  let cursor = sleep.started_at;
-  for (const pause of pauses) {
-    segments.push({ kind: 'sleep', startedAt: cursor, endedAt: pause.started_at });
-    segments.push({ kind: 'pause', startedAt: pause.started_at, endedAt: pause.ended_at });
-    cursor = pause.ended_at;
-  }
-  segments.push({ kind: 'sleep', startedAt: cursor, endedAt: sleep.ended_at });
-  return segments.filter((s) => Date.parse(s.endedAt) > Date.parse(s.startedAt));
-}
 
 function toDatetimeLocal(iso: string): string {
   const d = new Date(iso);
@@ -51,23 +25,16 @@ function toDatetimeLocal(iso: string): string {
   return `${y}-${m}-${day}T${hh}:${mm}`;
 }
 
-function segmentSeconds(segment: Segment): number {
-  return Math.max(
-    0,
-    Math.floor((Date.parse(segment.endedAt) - Date.parse(segment.startedAt)) / 1000),
-  );
-}
-
-function SegmentRow({ segment }: { segment: Segment }) {
+function SegmentRow({ segment }: { segment: SleepSegment }) {
   const accent = segment.kind === 'sleep' ? trackerColors.sleep.accent : PAUSE_COLOR;
   return (
     <View style={styles.segmentRow}>
       <View style={[styles.dot, { backgroundColor: accent }]} />
       <Text style={styles.segmentLabel}>{segment.kind === 'sleep' ? 'Sleep' : 'Pause'}</Text>
       <Text style={styles.segmentRange}>
-        {timeHHmm(segment.startedAt)}–{timeHHmm(segment.endedAt)}
+        {timeHHmm(segment.startedAt)}–{segment.endedAt ? timeHHmm(segment.endedAt) : 'now'}
       </Text>
-      <Text style={styles.segmentDuration}>{formatDuration(segmentSeconds(segment))}</Text>
+      <Text style={styles.segmentDuration}>{formatDuration(segment.seconds)}</Text>
     </View>
   );
 }
@@ -120,7 +87,8 @@ export default function EditSleep() {
     valid = startedValid && endedValid;
   }
 
-  const segments = sleep && !running ? deriveSegments(sleep) : [];
+  const segments =
+    sleep && !running ? deriveSegments(sleep, sleep.sleep_pauses, Date.parse(sleep.ended_at!)) : [];
 
   function save() {
     if (!sleep) return;

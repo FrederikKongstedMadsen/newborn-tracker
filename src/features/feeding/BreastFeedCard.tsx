@@ -7,7 +7,7 @@ import { formatClock } from '@/lib/clock';
 import { colors, fontFamily, fontSize, radius, spacing, trackerColors } from '@/lib/theme';
 
 import { sideElapsedSeconds, totalElapsedSeconds } from './feedMath';
-import { useStartBreastFeed, useStopFeed, useToggleSide } from './hooks';
+import { usePauseFeed, useStartBreastFeed, useStopFeed, useToggleSide } from './hooks';
 import type { Feed, FeedSide } from './types';
 import { useNowTick } from './useNowTick';
 
@@ -43,12 +43,15 @@ export function BreastFeedCard({ babyId, feed }: Props) {
   const now = useNowTick(!!feed);
   const startBreastFeed = useStartBreastFeed();
   const toggleSide = useToggleSide();
+  const pauseFeed = usePauseFeed();
   const stopFeed = useStopFeed();
 
   const total = feed ? totalElapsedSeconds(feed, now) : 0;
   const left = feed ? sideElapsedSeconds(feed, 'left', now) : 0;
   const right = feed ? sideElapsedSeconds(feed, 'right', now) : 0;
-  const disabled = startBreastFeed.isPending || toggleSide.isPending || stopFeed.isPending;
+  const disabled =
+    startBreastFeed.isPending || toggleSide.isPending || pauseFeed.isPending || stopFeed.isPending;
+  const paused = !!feed && feed.active_side === null;
 
   function pressSide(side: FeedSide) {
     if (!feed) {
@@ -56,7 +59,10 @@ export function BreastFeedCard({ babyId, feed }: Props) {
       startBreastFeed.mutate({ babyId, side });
       return;
     }
-    if (feed.active_side === side) return;
+    if (feed.active_side === side) {
+      pauseFeed.mutate(feed);
+      return;
+    }
     toggleSide.mutate({ feed, side });
   }
 
@@ -66,19 +72,20 @@ export function BreastFeedCard({ babyId, feed }: Props) {
         <ClockDigits seconds={total} />
       </View>
       {!feed ? <Text style={styles.hint}>Tap a side to start</Text> : null}
+      {paused ? <Text style={styles.hint}>Paused — tap a side to resume</Text> : null}
       <View style={styles.sides}>
         <SideBox
           label="LEFT"
           seconds={left}
           active={feed?.active_side === 'left'}
-          disabled={disabled || (!feed && !babyId) || feed?.active_side === 'left'}
+          disabled={disabled || (!feed && !babyId)}
           onPress={() => pressSide('left')}
         />
         <SideBox
           label="RIGHT"
           seconds={right}
           active={feed?.active_side === 'right'}
-          disabled={disabled || (!feed && !babyId) || feed?.active_side === 'right'}
+          disabled={disabled || (!feed && !babyId)}
           onPress={() => pressSide('right')}
         />
       </View>
@@ -86,7 +93,16 @@ export function BreastFeedCard({ babyId, feed }: Props) {
         <Text style={styles.error}>{startBreastFeed.error.message}</Text>
       ) : null}
       {toggleSide.isError ? <Text style={styles.error}>{toggleSide.error.message}</Text> : null}
+      {pauseFeed.isError ? <Text style={styles.error}>{pauseFeed.error.message}</Text> : null}
       {stopFeed.isError ? <Text style={styles.error}>{stopFeed.error.message}</Text> : null}
+      {feed && !paused ? (
+        <PillButton
+          title="Pause"
+          variant="neutral"
+          disabled={disabled}
+          onPress={() => pauseFeed.mutate(feed)}
+        />
+      ) : null}
       {feed ? (
         <PillButton
           title="Stop"

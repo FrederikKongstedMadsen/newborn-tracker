@@ -31,6 +31,75 @@ export function sleepSummary(sleep: Sleep, pauses: SleepPause[], nowMs: number):
   return `${duration} · ${n} pause${n === 1 ? '' : 's'}`;
 }
 
+export interface SleepSegment {
+  kind: 'sleep' | 'pause';
+  startedAt: string;
+  endedAt: string | null;
+  seconds: number;
+}
+
+function segmentSeconds(startedAt: string, endedAt: string | null, nowMs: number): number {
+  const start = Date.parse(startedAt);
+  const end = endedAt ? Date.parse(endedAt) : nowMs;
+  return Math.max(0, Math.floor((end - start) / 1000));
+}
+
+/** Derives alternating sleep/pause segments between the sleep's start and its
+ * end (or, for a running sleep, "now"), splitting the sleep span at each
+ * pause. For an ended sleep, mirrors the previous edit-screen behavior:
+ * pauses left open when the sleep was stopped (a rare stop-while-paused
+ * case) are excluded rather than shown as a segment. For a running sleep, at
+ * most one trailing pause may still be open, and it (or the trailing sleep
+ * segment, if not paused) is returned with `endedAt: null` so callers can
+ * render it ticking against their own `now`. */
+export function deriveSegments(sleep: Sleep, pauses: SleepPause[], nowMs: number): SleepSegment[] {
+  const running = sleep.ended_at === null;
+  const boundary = sleep.ended_at ?? new Date(nowMs).toISOString();
+  const relevant = running ? pauses : pauses.filter((p) => p.ended_at !== null);
+  const sorted = [...relevant].sort((a, b) => Date.parse(a.started_at) - Date.parse(b.started_at));
+
+  const segments: SleepSegment[] = [];
+  let cursor: string | null = sleep.started_at;
+
+  for (const pause of sorted) {
+    segments.push({
+      kind: 'sleep',
+      startedAt: cursor,
+      endedAt: pause.started_at,
+      seconds: segmentSeconds(cursor, pause.started_at, nowMs),
+    });
+    if (pause.ended_at === null) {
+      // Only possible when running: the trailing pause is still open.
+      segments.push({
+        kind: 'pause',
+        startedAt: pause.started_at,
+        endedAt: null,
+        seconds: segmentSeconds(pause.started_at, null, nowMs),
+      });
+      cursor = null;
+      break;
+    }
+    segments.push({
+      kind: 'pause',
+      startedAt: pause.started_at,
+      endedAt: pause.ended_at,
+      seconds: segmentSeconds(pause.started_at, pause.ended_at, nowMs),
+    });
+    cursor = pause.ended_at;
+  }
+
+  if (cursor !== null) {
+    segments.push({
+      kind: 'sleep',
+      startedAt: cursor,
+      endedAt: running ? null : boundary,
+      seconds: segmentSeconds(cursor, running ? null : boundary, nowMs),
+    });
+  }
+
+  return segments.filter((s) => s.endedAt === null || s.seconds > 0);
+}
+
 export interface DailySleepTotal {
   dateIso: string;
   count: number;

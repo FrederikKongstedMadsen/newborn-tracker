@@ -96,6 +96,26 @@ export function useToggleSide() {
   });
 }
 
+export function usePauseFeed() {
+  const invalidate = useInvalidateFeeds();
+  return useMutation({
+    mutationFn: async (feed: Feed) => {
+      const nowMs = Date.now();
+      const banked = bankActiveSide(feed, nowMs);
+      const { error } = await supabase
+        .from('feeds')
+        .update({
+          ...banked,
+          active_side: null,
+          active_side_started_at: null,
+        })
+        .eq('id', feed.id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+}
+
 export function useStopFeed() {
   const invalidate = useInvalidateFeeds();
   return useMutation({

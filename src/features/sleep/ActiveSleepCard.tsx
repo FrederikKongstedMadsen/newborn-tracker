@@ -4,12 +4,29 @@ import { Card } from '@/components/Card';
 import { ClockDigits } from '@/components/ClockDigits';
 import { PillButton } from '@/components/PillButton';
 import { useNowTick } from '@/features/feeding/useNowTick';
+import { timeHHmm } from '@/lib/dates';
 import { formatDuration } from '@/lib/duration';
-import { colors, fontFamily, fontSize, spacing } from '@/lib/theme';
+import { colors, fontFamily, fontSize, spacing, trackerColors } from '@/lib/theme';
 
-import { effectiveSleepSeconds, sleepState } from './sleepMath';
+import { deriveSegments, effectiveSleepSeconds, sleepState, type SleepSegment } from './sleepMath';
 import { usePauseSleep, useResumeSleep, useStopSleep } from './hooks';
 import type { SleepWithPauses } from './types';
+
+const PAUSE_COLOR = '#c9922e';
+
+function SegmentRow({ segment }: { segment: SleepSegment }) {
+  const accent = segment.kind === 'sleep' ? trackerColors.sleep.accent : PAUSE_COLOR;
+  return (
+    <View style={styles.segmentRow}>
+      <View style={[styles.dot, { backgroundColor: accent }]} />
+      <Text style={styles.segmentLabel}>{segment.kind === 'sleep' ? 'Sleep' : 'Pause'}</Text>
+      <Text style={styles.segmentRange}>
+        {timeHHmm(segment.startedAt)}–{segment.endedAt ? timeHHmm(segment.endedAt) : 'now'}
+      </Text>
+      <Text style={styles.segmentDuration}>{formatDuration(segment.seconds)}</Text>
+    </View>
+  );
+}
 
 interface Props {
   sleep: SleepWithPauses;
@@ -24,6 +41,7 @@ export function ActiveSleepCard({ sleep }: Props) {
   const total = effectiveSleepSeconds(sleep, sleep.sleep_pauses, now);
   const state = sleepState(sleep, sleep.sleep_pauses);
   const openPause = sleep.sleep_pauses.find((pause) => pause.ended_at === null);
+  const segments = deriveSegments(sleep, sleep.sleep_pauses, now);
   const disabled = pauseSleep.isPending || resumeSleep.isPending || stopSleep.isPending;
   const paused = state === 'paused' && !!openPause;
 
@@ -64,6 +82,13 @@ export function ActiveSleepCard({ sleep }: Props) {
         disabled={disabled}
         onPress={() => stopSleep.mutate(sleep)}
       />
+      {segments.length > 0 ? (
+        <View style={styles.segments}>
+          {segments.map((segment, i) => (
+            <SegmentRow key={`${segment.kind}-${segment.startedAt}-${i}`} segment={segment} />
+          ))}
+        </View>
+      ) : null}
     </Card>
   );
 }
@@ -84,4 +109,33 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   error: { color: colors.danger, fontSize: fontSize.sm },
+  segments: { gap: spacing.sm, marginTop: spacing.sm },
+  segmentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  segmentLabel: {
+    flex: 1,
+    color: colors.text,
+    fontFamily: fontFamily.regular,
+    fontSize: fontSize.md,
+  },
+  segmentRange: {
+    color: colors.mutedDark,
+    fontFamily: fontFamily.regular,
+    fontSize: fontSize.sm,
+  },
+  segmentDuration: {
+    color: colors.text,
+    fontFamily: fontFamily.bold,
+    fontSize: fontSize.md,
+    marginLeft: spacing.sm,
+    minWidth: 56,
+    textAlign: 'right',
+  },
 });

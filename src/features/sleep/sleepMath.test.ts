@@ -2,6 +2,7 @@ import { localDateIso } from '@/lib/dates';
 
 import {
   dailySleepTotals,
+  deriveSegments,
   effectiveSleepSeconds,
   pauseSeconds,
   sleepState,
@@ -218,5 +219,167 @@ describe('dailySleepTotals', () => {
     const totals = dailySleepTotals(sleeps, 1, '2026-07-18', nowMs);
     expect(totals[0].totalSeconds).toBe(120);
     expect(totals[0].count).toBe(1);
+  });
+});
+
+describe('deriveSegments', () => {
+  it('running, no pauses: one open sleep segment ticking', () => {
+    const nowMs = Date.parse('2026-07-18T10:02:05.000Z'); // 125s in
+    const segments = deriveSegments(base, [], nowMs);
+    expect(segments).toEqual([
+      { kind: 'sleep', startedAt: base.started_at, endedAt: null, seconds: 125 },
+    ]);
+  });
+
+  it('running with an open pause: closed sleep segment + open pause', () => {
+    const pauses = [
+      pause({
+        started_at: '2026-07-18T10:05:00.000Z',
+        ended_at: null,
+      }),
+    ];
+    const nowMs = Date.parse('2026-07-18T10:05:30.000Z'); // 30s into the pause
+    const segments = deriveSegments(base, pauses, nowMs);
+    expect(segments).toEqual([
+      {
+        kind: 'sleep',
+        startedAt: base.started_at,
+        endedAt: '2026-07-18T10:05:00.000Z',
+        seconds: 300,
+      },
+      { kind: 'pause', startedAt: '2026-07-18T10:05:00.000Z', endedAt: null, seconds: 30 },
+    ]);
+  });
+
+  it('running with a closed pause: sleep, pause, open sleep', () => {
+    const pauses = [
+      pause({
+        started_at: '2026-07-18T10:05:00.000Z',
+        ended_at: '2026-07-18T10:05:30.000Z',
+      }),
+    ];
+    const nowMs = Date.parse('2026-07-18T10:10:00.000Z'); // 4m30s past the pause end
+    const segments = deriveSegments(base, pauses, nowMs);
+    expect(segments).toEqual([
+      {
+        kind: 'sleep',
+        startedAt: base.started_at,
+        endedAt: '2026-07-18T10:05:00.000Z',
+        seconds: 300,
+      },
+      {
+        kind: 'pause',
+        startedAt: '2026-07-18T10:05:00.000Z',
+        endedAt: '2026-07-18T10:05:30.000Z',
+        seconds: 30,
+      },
+      { kind: 'sleep', startedAt: '2026-07-18T10:05:30.000Z', endedAt: null, seconds: 270 },
+    ]);
+  });
+
+  it('running, back-to-back pause at start: filters the zero-length leading sleep segment', () => {
+    const pauses = [
+      pause({
+        started_at: base.started_at, // pause starts exactly at sleep start
+        ended_at: '2026-07-18T10:00:20.000Z',
+      }),
+    ];
+    const nowMs = Date.parse('2026-07-18T10:01:00.000Z');
+    const segments = deriveSegments(base, pauses, nowMs);
+    expect(segments).toEqual([
+      {
+        kind: 'pause',
+        startedAt: base.started_at,
+        endedAt: '2026-07-18T10:00:20.000Z',
+        seconds: 20,
+      },
+      { kind: 'sleep', startedAt: '2026-07-18T10:00:20.000Z', endedAt: null, seconds: 40 },
+    ]);
+  });
+
+  it('ended sleep: matches previous edit-screen behavior, splitting at closed pauses', () => {
+    const ended = { ...base, ended_at: '2026-07-18T10:20:00.000Z' }; // 1200s
+    const pauses = [
+      pause({
+        started_at: '2026-07-18T10:05:00.000Z',
+        ended_at: '2026-07-18T10:05:30.000Z', // 30s
+      }),
+      pause({
+        id: 'p2',
+        started_at: '2026-07-18T10:10:00.000Z',
+        ended_at: '2026-07-18T10:10:30.000Z', // 30s
+      }),
+    ];
+    const nowMs = Date.parse('2026-07-18T12:00:00.000Z'); // irrelevant, sleep ended
+    const segments = deriveSegments(ended, pauses, nowMs);
+    expect(segments).toEqual([
+      {
+        kind: 'sleep',
+        startedAt: ended.started_at,
+        endedAt: '2026-07-18T10:05:00.000Z',
+        seconds: 300,
+      },
+      {
+        kind: 'pause',
+        startedAt: '2026-07-18T10:05:00.000Z',
+        endedAt: '2026-07-18T10:05:30.000Z',
+        seconds: 30,
+      },
+      {
+        kind: 'sleep',
+        startedAt: '2026-07-18T10:05:30.000Z',
+        endedAt: '2026-07-18T10:10:00.000Z',
+        seconds: 270,
+      },
+      {
+        kind: 'pause',
+        startedAt: '2026-07-18T10:10:00.000Z',
+        endedAt: '2026-07-18T10:10:30.000Z',
+        seconds: 30,
+      },
+      {
+        kind: 'sleep',
+        startedAt: '2026-07-18T10:10:30.000Z',
+        endedAt: ended.ended_at,
+        seconds: 570,
+      },
+    ]);
+  });
+
+  it('ended sleep stopped while paused: the still-open pause is excluded (zero-length filtering)', () => {
+    const ended = { ...base, ended_at: '2026-07-18T10:10:00.000Z' }; // 600s
+    const pauses = [
+      pause({
+        started_at: '2026-07-18T10:05:00.000Z',
+        ended_at: '2026-07-18T10:05:30.000Z', // 30s closed pause
+      }),
+      pause({
+        id: 'p2',
+        started_at: '2026-07-18T10:08:00.000Z',
+        ended_at: null, // sleep was stopped while this pause was open
+      }),
+    ];
+    const nowMs = Date.parse('2026-07-18T12:00:00.000Z');
+    const segments = deriveSegments(ended, pauses, nowMs);
+    expect(segments).toEqual([
+      {
+        kind: 'sleep',
+        startedAt: ended.started_at,
+        endedAt: '2026-07-18T10:05:00.000Z',
+        seconds: 300,
+      },
+      {
+        kind: 'pause',
+        startedAt: '2026-07-18T10:05:00.000Z',
+        endedAt: '2026-07-18T10:05:30.000Z',
+        seconds: 30,
+      },
+      {
+        kind: 'sleep',
+        startedAt: '2026-07-18T10:05:30.000Z',
+        endedAt: ended.ended_at,
+        seconds: 270,
+      },
+    ]);
   });
 });

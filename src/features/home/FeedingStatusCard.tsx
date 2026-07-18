@@ -18,8 +18,14 @@ export function FeedingStatusCard({ babyId }: { babyId: string }) {
   let meta = 'tap to start';
 
   if (activeFeed) {
-    value = `${formatDuration(totalElapsedSeconds(activeFeed, now))} · ${activeFeed.active_side}`;
-    meta = 'running';
+    const total = formatDuration(totalElapsedSeconds(activeFeed, now));
+    if (activeFeed.active_side === null) {
+      value = total;
+      meta = 'paused';
+    } else {
+      value = `${total} · ${activeFeed.active_side}`;
+      meta = 'running';
+    }
   } else if (latest) {
     value = feedSummary(latest);
     meta = relativeTime(latest.ended_at ?? latest.started_at, now);
