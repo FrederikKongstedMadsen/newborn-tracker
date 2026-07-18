@@ -21,10 +21,12 @@
 ### Task 1: Scaffold Expo app
 
 **Files:**
+
 - Create: entire Expo template at repo root (`app/`, `package.json`, `tsconfig.json`, `app.json`, `.gitignore`, `assets/`)
 - Delete: template example screens/components not needed
 
 **Interfaces:**
+
 - Produces: working Expo project where `app/*.tsx` files are routes (Expo Router), `npm run typecheck` and `npx expo export --platform android` pass.
 
 - [ ] **Step 1: Scaffold with create-expo-app**
@@ -41,6 +43,7 @@ npx create-expo-app@latest . --template default
 Run the template's reset script if present (`npm run reset-project` — answer "delete"), or manually delete example tab screens so `app/` contains only `_layout.tsx` and `index.tsx` with minimal content:
 
 `app/_layout.tsx`:
+
 ```tsx
 import { Stack } from 'expo-router';
 
@@ -50,6 +53,7 @@ export default function RootLayout() {
 ```
 
 `app/index.tsx`:
+
 ```tsx
 import { Text, View } from 'react-native';
 
@@ -88,10 +92,12 @@ git commit -m "chore: scaffold Expo app with TypeScript and Expo Router"
 ### Task 2: Lint/format tooling
 
 **Files:**
+
 - Create: `eslint.config.js` (template may already ship one), `.prettierrc`
 - Modify: `package.json` (scripts, devDependencies)
 
 **Interfaces:**
+
 - Produces: `npm run lint` and `npm run format` scripts that pass on the codebase.
 
 - [ ] **Step 1: Install**
@@ -114,6 +120,7 @@ module.exports = defineConfig([expoConfig, prettierConfig, { ignores: ['dist/*']
 ```
 
 `.prettierrc`:
+
 ```json
 {
   "singleQuote": true,
@@ -123,6 +130,7 @@ module.exports = defineConfig([expoConfig, prettierConfig, { ignores: ['dist/*']
 ```
 
 `package.json` scripts:
+
 ```json
 "lint": "expo lint",
 "format": "prettier --write ."
@@ -143,10 +151,12 @@ git commit -m "chore: add eslint + prettier tooling"
 ### Task 3: Supabase client + React Query wiring
 
 **Files:**
+
 - Create: `src/lib/supabase.ts`, `src/lib/queryClient.ts`, `.env.example`
 - Modify: `app/_layout.tsx`, `.gitignore`
 
 **Interfaces:**
+
 - Produces: `supabase` (SupabaseClient) exported from `src/lib/supabase.ts`; `queryClient` (QueryClient) from `src/lib/queryClient.ts`; root layout wraps app in `QueryClientProvider`.
 
 - [ ] **Step 1: Install**
@@ -159,6 +169,7 @@ npm install @supabase/supabase-js @tanstack/react-query
 - [ ] **Step 2: Create env files**
 
 `.env.example`:
+
 ```
 EXPO_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
@@ -169,6 +180,7 @@ Copy to `.env` (placeholder values fine until Supabase project exists). Ensure `
 - [ ] **Step 3: Supabase client**
 
 `src/lib/supabase.ts`:
+
 ```ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
@@ -195,6 +207,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 - [ ] **Step 4: Query client + provider**
 
 `src/lib/queryClient.ts`:
+
 ```ts
 import { QueryClient } from '@tanstack/react-query';
 
@@ -202,6 +215,7 @@ export const queryClient = new QueryClient();
 ```
 
 `app/_layout.tsx`:
+
 ```tsx
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
@@ -232,16 +246,19 @@ git commit -m "feat: add supabase client and react-query provider"
 ### Task 4: Auth — session hook, login screen, auth gate, home
 
 **Files:**
+
 - Create: `src/features/auth/useSession.ts`, `app/login.tsx`
 - Modify: `app/_layout.tsx`, `app/index.tsx`
 
 **Interfaces:**
+
 - Consumes: `supabase` from `src/lib/supabase.ts`.
 - Produces: `useSession(): { session: Session | null; isLoading: boolean }`; `/login` route; root layout redirects unauthenticated users to `/login` and authenticated users away from it.
 
 - [ ] **Step 1: Session hook**
 
 `src/features/auth/useSession.ts`:
+
 ```ts
 import type { Session } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
@@ -272,6 +289,7 @@ export function useSession() {
 - [ ] **Step 2: Auth gate in root layout**
 
 `app/_layout.tsx`:
+
 ```tsx
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
@@ -317,6 +335,7 @@ export default function RootLayout() {
 - [ ] **Step 3: Login screen**
 
 `app/login.tsx`:
+
 ```tsx
 import { useState } from 'react';
 import { ActivityIndicator, Button, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -371,6 +390,7 @@ const styles = StyleSheet.create({
 - [ ] **Step 4: Home screen with email + sign out**
 
 `app/index.tsx`:
+
 ```tsx
 import { Button, Text, View } from 'react-native';
 
@@ -404,9 +424,11 @@ git commit -m "feat: add login screen with supabase auth gate"
 ### Task 5: EAS build config, migrations dir, README
 
 **Files:**
+
 - Create: `eas.json`, `supabase/migrations/.gitkeep`, `README.md`
 
 **Interfaces:**
+
 - Produces: `eas build -p android --profile preview` yields an installable APK; README documents all manual Supabase steps.
 
 - [ ] **Step 1: eas.json**
