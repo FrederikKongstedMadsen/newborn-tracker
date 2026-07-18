@@ -1,12 +1,37 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
+import { ActivityIndicator, View } from 'react-native';
 
+import { useSession } from '@/features/auth/useSession';
 import { queryClient } from '@/lib/queryClient';
+
+function AuthGate() {
+  const { session, isLoading } = useSession();
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
+  return (
+    <Stack>
+      <Stack.Protected guard={session !== null}>
+        <Stack.Screen name="index" options={{ title: 'Newborn Tracker' }} />
+      </Stack.Protected>
+      <Stack.Protected guard={session === null}>
+        <Stack.Screen name="login" options={{ title: 'Log in' }} />
+      </Stack.Protected>
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Stack />
+      <AuthGate />
     </QueryClientProvider>
   );
 }
