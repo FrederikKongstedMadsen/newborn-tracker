@@ -62,6 +62,11 @@ describe('timeHHmm', () => {
 });
 
 describe('formatAge', () => {
+  it('shows due-in for future birth dates', () => {
+    expect(formatAge(-6)).toBe('due in 6 days');
+    expect(formatAge(-1)).toBe('due in 1 day');
+  });
+
   it('formats 0 days', () => {
     expect(formatAge(0)).toBe('0 days old');
   });

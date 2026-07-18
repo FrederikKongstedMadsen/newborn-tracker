@@ -57,6 +57,9 @@ function unit(n: number, singular: string): string {
 /** Human-friendly age label, staged in granularity as the baby gets older:
  * days for < 2 weeks, weeks+days for < ~2 months, months+weeks beyond that. */
 export function formatAge(ageDays: number): string {
+  if (ageDays < 0) {
+    return `due in ${unit(-ageDays, 'day')}`;
+  }
   if (ageDays < 14) {
     return `${unit(ageDays, 'day')} old`;
   }
